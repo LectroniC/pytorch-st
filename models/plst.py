@@ -71,7 +71,9 @@ class StyleTransferNet(nn.Module):
         self.tanh = nn.Tanh()
 
     def forward(self, x):
-        """input: [N, 3, 256, 256]"""
+        """ input:  [N, 3, 256, 256]
+            output: [N, 3, 256, 256]
+        """
         x = self.relu(self.in_1(self.conv_1(x)))
         x = self.relu(self.in_2(self.conv_2(x)))
         x = self.relu(self.in_3(self.conv_3(x)))
@@ -82,6 +84,7 @@ class StyleTransferNet(nn.Module):
         return x
 
 ### vgg16 network for loss computation ###
+
 class Vgg16(torch.nn.Module):
     def __init__(self):
         super(Vgg16, self).__init__()
@@ -102,6 +105,9 @@ class Vgg16(torch.nn.Module):
             para.requires_grad = False
 
     def forward(self, x):
+        """ input:  [N, 3, 256, 256]
+            output: [N, 64, 256, 256], [N, 128, 128, 128], [N, 256, 64, 64], [N, 512, 32, 32]
+        """
         x = self.slice1(x)
         relu1_2 = x
         x = self.slice2(x)
@@ -124,10 +130,14 @@ def test_vgg():
     mdl = Vgg16()
     print(mdl)
     out = mdl(x)
-    print(out[0])
+    print(out[0].shape)
+    print(out[1].shape)
+    print(out[2].shape)
+    print(out[3].shape)
 
 
 def main():
+    test_net()
     test_vgg()
 
 
