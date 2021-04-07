@@ -73,8 +73,7 @@ def train(args):
 
     if args.model_name == "plst":
         # visualization of training controlled by flag
-        visualize = (args.visualize != None)
-        if (visualize):
+        if (args.visualization_freq != 0):
             simple_transform = get_simple_dataset_transform(256)
 
             img_avocado = load_image("sample_images/avocado.jpg")
