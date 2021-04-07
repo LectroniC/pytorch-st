@@ -94,7 +94,7 @@ def train(args):
         train_dataset = datasets.ImageFolder(args.dataset, simple_transform)
         train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE)
         dataset_length = len(train_dataset)
-        print("Loading total "+str(dataset_length))
+        print("Loading total images: "+str(dataset_length))
 
         # load style image
         style = load_image(args.style_image)
@@ -146,7 +146,7 @@ def train(args):
                         cumulate_content_loss /
                         (batch_num+1.0), cumulate_style_loss /
                         (batch_num+1.0), cumulate_tv_loss/(batch_num+1.0),
-                        content_loss.data[0], style_loss.data[0], tv_loss.data[0]
+                        content_loss, style_loss, tv_loss
                     )
                     print(status)
 
