@@ -21,6 +21,6 @@ The code allows training
 ## Reference
 
 - https://github.com/wolny/pytorch-3dunet
-- https://github.com/zhanghang1989/PyTorch-Multi-Style-Transfers
+- https://github.com/zhanghang1989/PyTorch-Multi-Style-Transfer
 - https://github.com/dxyang/StyleTransfer
 - https://github.com/pytorch/examples/tree/master/fast_neural_style
