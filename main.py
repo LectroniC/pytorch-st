@@ -17,7 +17,7 @@ from models.plst import StyleTransferNet, Vgg16, Loss_plst
 # Global Variables
 BATCH_SIZE = 4
 LEARNING_RATE = 1e-3
-EPOCHS = 5
+EPOCHS = 4
 REPORT_BATCH_FREQ = 1000
 CHECKPOINT_SAVE_EPOCH_FREQ = 1
 
@@ -151,9 +151,10 @@ def train(args):
                     )
                     print(status)
 
-                if best_total_loss == None or total_loss < best_total_loss:
-                    save_model(image_transformer, use_gpu,
-                               args.model_name+"_best")
+                # if best_total_loss == None or total_loss < best_total_loss:
+                #     best_total_loss = total_loss
+                #     save_model(image_transformer, use_gpu,
+                #                args.model_name+"_best")
 
                 if args.visualization_freq != 0 and ((batch_num + 1) % args.visualization_freq == 0):
                     print("Write vis images to folder.")
