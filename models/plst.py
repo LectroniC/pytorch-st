@@ -193,6 +193,7 @@ def extract_and_calculate_loss(vgg16, style_img, out):
     # torch.randn(20, 3, 256, 256)
     # TODO: Wrap the loss function.
     # Return style_loss, content_loss, tv_loss
+    pass
 
 def main():
     test_net()
