@@ -233,7 +233,7 @@ class Loss_plst():
         loss_s = L_style(content_relu1_2, self.style_relu1_2) + L_style(content_relu2_2, self.style_relu2_2)+ \
             L_style(content_relu3_3, self.style_relu3_3) + L_style(content_relu4_3, self.style_relu4_3)
         loss_tv = L_tv(y_hat)
-        return self.lambda_c * loss_c + self.lambda_s * loss_s + self.lambda_tv * loss_tv
+        return self.lambda_c * loss_c, self.lambda_s * loss_s, self.lambda_tv * loss_tv
 
 
 def main():
