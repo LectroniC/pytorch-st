@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 def get_simple_dataset_transform(image_dim):
     return transforms.Compose([
-        transforms.Scale(image_dim),
+        transforms.Resize(image_dim),
         transforms.CenterCrop(image_dim),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
