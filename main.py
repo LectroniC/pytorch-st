@@ -45,6 +45,9 @@ def save_model(model, use_gpu, model_name):
     filename = "saved_models/" + str(model_name) + ".state"
     torch.save(model.state_dict(), filename)
 
+    if use_gpu:
+        image_transformer.cuda()
+
     model.train()
 
 
@@ -123,7 +126,7 @@ def train(args):
                 optimizer.zero_grad()
                 x = Variable(x).type(dtype)
                 y_hat = image_transformer(x)
-                content_loss, style_loss, tv_loss = loss_plst(x, y_hat)
+                content_loss, style_loss, tv_loss = loss_plst.extract_and_calculate_loss(x, y_hat)
 
                 cumulate_content_loss += content_loss
                 cumulate_style_loss += style_loss

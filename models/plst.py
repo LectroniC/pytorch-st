@@ -217,12 +217,23 @@ def test_loss():
 class Loss_plst():
     def __init__(vgg, style_img, lambda_c=1e0, lambda_s=1e5,  lambda_tv=1e-7):
         # Style image
-        pass
+        self.vgg = vgg
+        self.style_img = style_img
+        self.lambda_c = lambda_c
+        self.lambda_s = lambda_s
+        self.lambda_tv = lambda_tv
+        self.style_relu1_2, self.style_relu2_2, self.style_relu3_3, self.style_relu4_3 = self.vgg(self.style_img)
 
-    def extract_and_calculate_loss(self):
+    def extract_and_calculate_loss(self, x, y_hat):
         # TODO: Wrap the loss function.
         # Return content_loss, style_loss, tv_loss
-        pass
+        _, content_target, _, _ = self.vgg(x)
+        content_relu1_2, content_relu2_2, content_relu3_3, content_relu4_3 = self.vgg(y_hat)
+        loss_c = L_feat(content_relu2_2, content_target)
+        loss_s = L_style(content_relu1_2, self.style_relu1_2) + L_style(content_relu2_2, self.style_relu2_2)+ \
+            L_style(content_relu3_3, self.style_relu3_3) + L_style(content_relu4_3, self.style_relu4_3)
+        loss_tv = L_tv(y_hat)
+        return self.lambda_c * loss_c + self.lambda_s * loss_s + self.lambda_tv * loss_tv
 
 
 def main():
