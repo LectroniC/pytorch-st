@@ -4,20 +4,17 @@ import os
 import argparse
 import time
 
+from PIL import Image
 from torch.autograd import Variable
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torchvision import datasets
-from torchvision import transforms
-
 from dataset.loader import AvgStyleLoss
 from models.plst import StyleTransferNet, Vgg16, Loss_plst
 
-import torch
-from PIL import Image
+
 
 # Opens and returns image file as a PIL image (0-255)
-
 
 def load_image(filename):
     img = Image.open(filename)
@@ -25,7 +22,6 @@ def load_image(filename):
 
 # The image tensor has dimension (c, h, w)
 # Assume the output was produced by normalized data.
-
 
 def restore_and_save_image(filename, data):
     std = np.array([0.229, 0.224, 0.225]).reshape((3, 1, 1))
