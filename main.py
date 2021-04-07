@@ -56,7 +56,7 @@ def save_model(model, use_gpu, model_name):
 BATCH_SIZE = 4
 LEARNING_RATE = 1e-3
 EPOCHS = 5
-REPORT_FREQ = 100
+REPORT_FREQ = 1000
 CHECKPOINT_FREQ = 1
 
 
