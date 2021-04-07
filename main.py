@@ -17,19 +17,25 @@ import torch
 from PIL import Image
 
 # Opens and returns image file as a PIL image (0-255)
+
+
 def load_image(filename):
     img = Image.open(filename)
     return img
 
 # The image tensor has dimension (c, h, w)
 # Assume the output was produced by normalized data.
+
+
 def restore_and_save_image(filename, data):
     std = np.array([0.229, 0.224, 0.225]).reshape((3, 1, 1))
     mean = np.array([0.485, 0.456, 0.406]).reshape((3, 1, 1))
     img = data.clone().numpy()
-    img = ((img * std + mean).transpose(1, 2, 0)*255.0).clip(0, 255).astype("uint8")
+    img = ((img * std + mean).transpose(1, 2, 0)
+           * 255.0).clip(0, 255).astype("uint8")
     img = Image.fromarray(img)
     img.save(filename)
+
 
 # Reference: https://github.com/dxyang/StyleTransfer/blob/master/style.py
 # Global Variables
@@ -41,7 +47,8 @@ STYLE_WEIGHT = 1e5
 CONTENT_WEIGHT = 1e0
 TV_WEIGHT = 1e-7
 
-def train(args):          
+
+def train(args):
     # GPU enabling
     if (args.gpu != None):
         use_gpu = True
@@ -60,18 +67,21 @@ def train(args):
 
             img_avocado = load_image("sample_images/avocado.jpg")
             img_avocado = simple_transform(img_avocado)
-            img_avocado = Variable(img_avocado.repeat(1, 1, 1, 1), requires_grad=False).type(dtype)
+            img_avocado = Variable(img_avocado.repeat(
+                1, 1, 1, 1), requires_grad=False).type(dtype)
 
             img_cheetah = load_image("sample_images/cheetah.jpg")
             img_cheetah = simple_transform(img_cheetah)
-            img_cheetah = Variable(img_cheetah.repeat(1, 1, 1, 1), requires_grad=False).type(dtype)
+            img_cheetah = Variable(img_cheetah.repeat(
+                1, 1, 1, 1), requires_grad=False).type(dtype)
 
             img_quad = load_image("sample_images/quad.jpg")
             img_quad = simple_transform(img_quad)
-            img_quad = Variable(img_quad.repeat(1, 1, 1, 1), requires_grad=False).type(dtype)
+            img_quad = Variable(img_quad.repeat(1, 1, 1, 1),
+                                requires_grad=False).type(dtype)
 
         train_dataset = datasets.ImageFolder(args.dataset, simple_transform)
-        train_loader = DataLoader(train_dataset, batch_size = BATCH_SIZE)
+        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE)
 
         # load style image
         style = load_image(args.style_image)
@@ -80,7 +90,7 @@ def train(args):
 
         # define network
         image_transformer = StyleTransferNet().type(dtype)
-        optimizer = Adam(image_transformer.parameters(), LEARNING_RATE) 
+        optimizer = Adam(image_transformer.parameters(), LEARNING_RATE)
 
         # Initialize vgg network for loss
         vgg = Vgg16().type(dtype)
@@ -124,33 +134,41 @@ def train(args):
                 # print out status message
                 if ((batch_num + 1) % 100 == 0):
                     status = "{}  Epoch {}:  [{}/{}]  Batch:[{}]  AvgContentLoss: {:.5f}  AvgStyleLoss: {:.5f}  AvgTVLoss: {:.5f}  content: {:.5f}  style: {:.5f}  tv: {:.5f} ".format(
-                                    time.ctime(), e + 1, img_count, len(train_dataset), batch_num+1,
-                                    cumulate_content_loss/(batch_num+1.0), cumulate_style_loss/(batch_num+1.0), cumulate_tv_loss/(batch_num+1.0),
-                                    content_loss.data[0], style_loss.data[0], tv_loss.data[0]
-                                )
+                        time.ctime(), e + 1, img_count, len(train_dataset), batch_num+1,
+                        cumulate_content_loss /
+                        (batch_num+1.0), cumulate_style_loss /
+                        (batch_num+1.0), cumulate_tv_loss/(batch_num+1.0),
+                        content_loss.data[0], style_loss.data[0], tv_loss.data[0]
+                    )
                     print(status)
 
-                if args.visualization_freq!=0 and ((batch_num + 1) % args.visualization_freq == 0):
+                if args.visualization_freq != 0 and ((batch_num + 1) % args.visualization_freq == 0):
                     print("Write vis images to folder.")
 
                     image_transformer.eval()
 
                     if not os.path.exists("visualization"):
                         os.makedirs("visualization")
-                    if not os.path.exists("visualization/%s" %args.model_name):
-                        os.makedirs("visualization/%s" %args.model_name)
+                    if not os.path.exists("visualization/%s" % args.model_name):
+                        os.makedirs("visualization/%s" % args.model_name)
 
                     output_img_1 = image_transformer(img_avocado).cpu()
-                    output_img_1_path = ("visualization/{}/img_avocado_{}_{}.jpg".format(args.model_name, e+1, batch_num+1))
-                    restore_and_save_image.save_image(output_img_1_path, output_img_1.data[0])
+                    output_img_1_path = (
+                        "visualization/{}/img_avocado_{}_{}.jpg".format(args.model_name, e+1, batch_num+1))
+                    restore_and_save_image.save_image(
+                        output_img_1_path, output_img_1.data[0])
 
                     output_img_2 = image_transformer(img_cheetah).cpu()
-                    output_img_2_path = "visualization/{}/img_cheetah_{}_{}.jpg" %(args.model_name, e+1, batch_num+1)
-                    restore_and_save_image.save_image(output_img_2_path, output_img_2.data[0])
+                    output_img_2_path = "visualization/{}/img_cheetah_{}_{}.jpg" % (
+                        args.model_name, e+1, batch_num+1)
+                    restore_and_save_image.save_image(
+                        output_img_2_path, output_img_2.data[0])
 
                     output_img_3 = image_transformer(img_quad).cpu()
-                    output_img_3_path = "visualization/{}/img_quad_{}_{}.jpg" %(args.model_name, e+1, batch_num+1)
-                    restore_and_save_image.save_image(output_img_3_path, output_img_3.data[0])
+                    output_img_3_path = "visualization/{}/img_quad_{}_{}.jpg" % (
+                        args.model_name, e+1, batch_num+1)
+                    restore_and_save_image.save_image(
+                        output_img_3_path, output_img_3.data[0])
 
                     image_transformer.train()
 
@@ -164,9 +182,10 @@ def train(args):
             os.makedirs("saved_models")
         filename = "saved_models/" + str(args.model_name) + ".state"
         torch.save(image_transformer.state_dict(), filename)
-        
+
         if use_gpu:
             image_transformer.cuda()
+
 
 def style_transfer(args):
     # GPU enabling
@@ -196,18 +215,26 @@ def main():
     parser = argparse.ArgumentParser(description='Style transfer library tool')
     subparsers = parser.add_subparsers()
     train_parser = subparsers.add_parser("train")
-    train_parser.add_argument("--model-name", type=str, default="plst", help="model chooses for training.")
-    train_parser.add_argument("--style-image", type=str, required=True, help="path to a style image to train with")
-    train_parser.add_argument("--dataset", type=str, required=True, help="path to a dataset")
-    train_parser.add_argument("--gpu", type=int, default=None, help="GPU ID to use. None to use CPU")
-    train_parser.add_argument("--visualization-freq", type=int, default=0, help="Set the frequency of visualization.")
-    
+    train_parser.add_argument("--model-name", type=str,
+                              default="plst", help="model chooses for training.")
+    train_parser.add_argument(
+        "--style-image", type=str, required=True, help="path to a style image to train with")
+    train_parser.add_argument("--dataset", type=str,
+                              required=True, help="path to a dataset")
+    train_parser.add_argument(
+        "--gpu", type=int, default=None, help="GPU ID to use. None to use CPU")
+    train_parser.add_argument("--visualization-freq", type=int,
+                              default=0, help="Set the frequency of visualization.")
 
     transfer_parser = subparsers.add_parser("transfer")
-    transfer_parser.add_argument("--model-path", type=str, required=True, help="path to a pretrained model for a style image")
-    transfer_parser.add_argument("--source", type=str, required=True, help="path to source image")
-    transfer_parser.add_argument("--output", type=str, required=True, help="file name for stylized output image")
-    transfer_parser.add_argument("--gpu", type=int, default=None, help="GPU ID to use. None to use CPU")
+    transfer_parser.add_argument(
+        "--model-path", type=str, required=True, help="path to a pretrained model for a style image")
+    transfer_parser.add_argument(
+        "--source", type=str, required=True, help="path to source image")
+    transfer_parser.add_argument(
+        "--output", type=str, required=True, help="file name for stylized output image")
+    transfer_parser.add_argument(
+        "--gpu", type=int, default=None, help="GPU ID to use. None to use CPU")
 
     transfer_parser = subparsers.add_parser("evaluate")
     # TODO: Add helpers on evaluating models.
@@ -224,6 +251,7 @@ def main():
         pass
     else:
         print("invalid command")
+
 
 if __name__ == '__main__':
     main()
