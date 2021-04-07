@@ -108,29 +108,25 @@ def train(args):
             # train network
             image_transformer.train()
             for batch_num, (x, label) in enumerate(train_loader):
-                sample_count += len(x)
 
-                # zero out gradients
+                # Forward
                 optimizer.zero_grad()
-
-                # input batch to transformer network
                 x = Variable(x).type(dtype)
                 y_hat = image_transformer(x)
-
                 content_loss, style_loss, tv_loss = loss_plst(x, y_hat)
 
                 cumulate_content_loss += content_loss
                 cumulate_style_loss += style_loss
                 cumulate_tv_loss += tv_loss
-
-                # total loss
                 total_loss = content_loss + style_loss + tv_loss
 
-                # backprop
+                # Backprop
                 total_loss.backward()
                 optimizer.step()
 
-                # print out status message
+                sample_count += len(x)
+
+                # Showing training message (Could incorporate other backends in the future)
                 if ((batch_num + 1) % 100 == 0):
                     status = "Time: {}\n  Epoch {}:  [{}/{}]  Batch:[{}]  AvgContentLoss: {:.5f}  AvgStyleLoss: {:.5f}  AvgTVLoss: {:.5f}  content: {:.5f}  style: {:.5f}  tv: {:.5f} \n".format(
                         time.ctime(), epoch_num + 1, sample_count, dataset_length, batch_num+1,
@@ -181,10 +177,6 @@ def train(args):
             os.makedirs("saved_models")
         filename = "saved_models/" + str(args.model_name) + ".state"
         torch.save(image_transformer.state_dict(), filename)
-
-        if use_gpu:
-            image_transformer.cuda()
-
 
 def style_transfer(args):
     # GPU enabling
