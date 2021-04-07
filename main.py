@@ -18,8 +18,8 @@ from models.plst import StyleTransferNet, Vgg16, Loss_plst
 BATCH_SIZE = 4
 LEARNING_RATE = 1e-3
 EPOCHS = 5
-REPORT_FREQ = 1000
-CHECKPOINT_FREQ = 1
+REPORT_BATCH_FREQ = 1000
+CHECKPOINT_SAVE_EPOCH_FREQ = 1
 
 # Opens and returns image file as a PIL image (0-255)
 
@@ -141,7 +141,7 @@ def train(args):
                 sample_count += len(x)
 
                 # Showing training message (Could incorporate other backends in the future)
-                if ((batch_num + 1) % REPORT_FREQ == 0):
+                if ((batch_num + 1) % REPORT_BATCH_FREQ == 0):
                     status = "Time: {}\n  Epoch {}:  [{}/{}]  Batch:[{}]  AvgContentLoss: {:.5f}  AvgStyleLoss: {:.5f}  AvgTVLoss: {:.5f}  content: {:.5f}  style: {:.5f}  tv: {:.5f} \n".format(
                         time.ctime(), epoch_num + 1, sample_count, dataset_length, batch_num+1,
                         cumulate_content_loss /
@@ -185,7 +185,7 @@ def train(args):
 
                     image_transformer.train()
             # Save model
-            if ((epoch_num + 1) % CHECKPOINT_FREQ == 0):
+            if ((epoch_num + 1) % CHECKPOINT_SAVE_EPOCH_FREQ == 0):
                 save_model(image_transformer, use_gpu,
                            args.model_name+"_"+str(epoch_num + 1))
 
@@ -230,7 +230,7 @@ def main():
     train_parser.add_argument(
         "--gpu", type=int, default=None, help="GPU ID to use. None to use CPU")
     train_parser.add_argument("--visualization-freq", type=int,
-                              default=0, help="Set the frequency of visualization.")
+                              default=0, help="Set the frequency of visualization. This is to the granularity of batches.")
 
     transfer_parser = subparsers.add_parser("transfer")
     transfer_parser.add_argument(
