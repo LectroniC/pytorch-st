@@ -118,6 +118,46 @@ class Vgg16(torch.nn.Module):
         relu4_3 = x
         return (relu1_2, relu2_2, relu3_3, relu4_3)
 
+# [0] 12 [1] 22 [2] 33 [3] 43
+# feature reconstruction loss at layer relu2_2
+# style reconstruction loss at layer relu1_2, relu2_2, relu3_3, and relu4_3 
+
+def L_feat(feats, targets):
+    """ compute feature reconstruction loss
+        input: [C, H, W]
+        output: scalar tensor
+    """
+    criterion = nn.MSELoss(reduction='mean')
+    return criterion(feats, targets)
+
+def gram_matrix(input):
+    """find gram matrix: this returns a batch matrix"""
+    b, c, h, w = input.size()
+    features = input.view(b, c, h * w) 
+    G = torch.bmm(features, features.transpose(1, 2))
+    return G.div(h * w)
+
+def L_style(feats, targets):
+    """ compute style reconstruction loss (for single input/target pair)
+        input: [C, H, W]
+        output: scalar tensor
+    """
+    criterion = nn.MSELoss(reduction='mean')
+    return criterion(gram_matrix(feats), gram_matrix(targets))
+
+def L_pixel(feats, targets):
+    """ Pixel-wise loss: used when have groundtruth; typically not used
+    """
+    criterion = nn.MSELoss(reduction='mean')
+    return criterion(feats, targets)
+
+def L_tv(preds):
+    """ total variance regularization loss
+    """
+    loss = torch.mean(torch.abs(preds[:, :, :, :-1] - preds[:, :, :, 1:])) + \
+        torch.mean(torch.abs(preds[:, :, :-1, :] - preds[:, :, 1:, :]))
+    return loss
+
 def test_net():
     x = torch.randn(20, 3, 256, 256)
     print(x.shape)
@@ -135,11 +175,24 @@ def test_vgg():
     print(out[2].shape)
     print(out[3].shape)
 
+def test_loss():
+    x = torch.randn(20, 3, 256, 256)
+    model = StyleTransferNet()
+    loss_net = Vgg16()
+    out = model(x)
+    f1, f2, f3, f4 = loss_net(x)
+    p1, p2, p3, p4 = loss_net(out)
+    l1 = L_feat(p2, f2)
+    print(l1)
+    l2 = L_style(p1, f1)
+    print(l2)
+    l3 = L_tv(out)
+    print(l3)
 
 def main():
     test_net()
     test_vgg()
-
+    test_loss()
 
 if __name__ == "__main__":
     main()
