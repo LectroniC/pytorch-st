@@ -168,19 +168,19 @@ def train(args):
                     output_img_1 = image_transformer(img_avocado).cpu()
                     output_img_1_path = (
                         "visualization/{}/img_avocado_{}_{}.jpg".format(args.model_name, epoch_num+1, batch_num+1))
-                    restore_and_save_image.save_image(
+                    restore_and_save_image(
                         output_img_1_path, output_img_1.data[0])
 
                     output_img_2 = image_transformer(img_cheetah).cpu()
                     output_img_2_path = "visualization/{}/img_cheetah_{}_{}.jpg" % (
                         args.model_name, epoch_num+1, batch_num+1)
-                    restore_and_save_image.save_image(
+                    restore_and_save_image(
                         output_img_2_path, output_img_2.data[0])
 
                     output_img_3 = image_transformer(img_quad).cpu()
                     output_img_3_path = "visualization/{}/img_quad_{}_{}.jpg" % (
                         args.model_name, epoch_num+1, batch_num+1)
-                    restore_and_save_image.save_image(
+                    restore_and_save_image(
                         output_img_3_path, output_img_3.data[0])
 
                     image_transformer.train()
