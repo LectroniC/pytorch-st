@@ -13,7 +13,6 @@ from dataset.loader import AvgStyleLoss
 from models.plst import StyleTransferNet, Vgg16, Loss_plst
 
 
-
 # Opens and returns image file as a PIL image (0-255)
 
 def load_image(filename):
@@ -22,6 +21,7 @@ def load_image(filename):
 
 # The image tensor has dimension (c, h, w)
 # Assume the output was produced by normalized data.
+
 
 def restore_and_save_image(filename, data):
     std = np.array([0.229, 0.224, 0.225]).reshape((3, 1, 1))
@@ -33,11 +33,29 @@ def restore_and_save_image(filename, data):
     img.save(filename)
 
 
+def save_model(model, use_gpu, model_name):
+    # save model
+    model.eval()
+
+    if use_gpu:
+        image_transformer.cpu()
+
+    if not os.path.exists("saved_models"):
+        os.makedirs("saved_models")
+    filename = "saved_models/" + str(model_name) + ".state"
+    torch.save(model.state_dict(), filename)
+
+    model.train()
+
+
 # Reference: https://github.com/dxyang/StyleTransfer/blob/master/style.py
 # Global Variables
 BATCH_SIZE = 4
 LEARNING_RATE = 1e-3
 EPOCHS = 5
+REPORT_FREQ = 100
+CHECKPOINT_FREQ = 1
+
 
 def train(args):
     # GPU enabling
@@ -89,6 +107,7 @@ def train(args):
 
         loss_plst = Loss_plst(vgg, style)
 
+        best_total_loss = None
         for epoch_num in range(EPOCHS):
 
             sample_count = 0
@@ -118,7 +137,7 @@ def train(args):
                 sample_count += len(x)
 
                 # Showing training message (Could incorporate other backends in the future)
-                if ((batch_num + 1) % 100 == 0):
+                if ((batch_num + 1) % REPORT_FREQ == 0):
                     status = "Time: {}\n  Epoch {}:  [{}/{}]  Batch:[{}]  AvgContentLoss: {:.5f}  AvgStyleLoss: {:.5f}  AvgTVLoss: {:.5f}  content: {:.5f}  style: {:.5f}  tv: {:.5f} \n".format(
                         time.ctime(), epoch_num + 1, sample_count, dataset_length, batch_num+1,
                         cumulate_content_loss /
@@ -127,6 +146,10 @@ def train(args):
                         content_loss.data[0], style_loss.data[0], tv_loss.data[0]
                     )
                     print(status)
+
+                if best_total_loss == None or total_loss < best_total_loss:
+                    save_model(image_transformer, use_gpu,
+                               args.model_name+"_best")
 
                 if args.visualization_freq != 0 and ((batch_num + 1) % args.visualization_freq == 0):
                     print("Write vis images to folder.")
@@ -157,17 +180,14 @@ def train(args):
                         output_img_3_path, output_img_3.data[0])
 
                     image_transformer.train()
+            # Save model
+            if ((epoch_num + 1) % CHECKPOINT_FREQ == 0):
+                save_model(image_transformer, use_gpu,
+                           args.model_name+"_"+str(epoch_num + 1))
 
         # save model
-        image_transformer.eval()
+        save_model(image_transformer, use_gpu, args.model_name+"_final")
 
-        if use_gpu:
-            image_transformer.cpu()
-
-        if not os.path.exists("saved_models"):
-            os.makedirs("saved_models")
-        filename = "saved_models/" + str(args.model_name) + ".state"
-        torch.save(image_transformer.state_dict(), filename)
 
 def style_transfer(args):
     # GPU enabling

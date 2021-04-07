@@ -99,7 +99,6 @@ class StyleTransferNet(nn.Module):
 
 ### vgg16 network for loss computation ###
 
-
 class Vgg16(torch.nn.Module):
     def __init__(self):
         super(Vgg16, self).__init__()
