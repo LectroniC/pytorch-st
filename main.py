@@ -218,7 +218,7 @@ def style_transfer(args):
 
 def main():
     parser = argparse.ArgumentParser(description='Style transfer library tool')
-    subparsers = parser.add_subparsers()
+    subparsers = parser.add_subparsers(title="subcommands", dest="subcommand")
     train_parser = subparsers.add_parser("train")
     train_parser.add_argument("--model-name", type=str,
                               default="plst", help="model chooses for training.")
