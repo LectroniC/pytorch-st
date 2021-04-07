@@ -82,6 +82,7 @@ def train(args):
 
         train_dataset = datasets.ImageFolder(args.dataset, simple_transform)
         train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE)
+        dataset_length = len(train_dataset)
 
         # load style image
         style = load_image(args.style_image)
@@ -97,19 +98,17 @@ def train(args):
 
         loss_plst = Loss_plst(vgg, style)
 
-        for e in range(EPOCHS):
+        for epoch_num in range(EPOCHS):
 
-            # track values for...
-            img_count = 0
-            cumulate_content_loss = 0.0
-            cumulate_style_loss = 0.0
-            cumulate_tv_loss = 0.0
+            sample_count = 0
+            cumulate_content_loss = 0
+            cumulate_style_loss = 0
+            cumulate_tv_loss = 0
 
             # train network
             image_transformer.train()
             for batch_num, (x, label) in enumerate(train_loader):
-                img_batch_read = len(x)
-                img_count += img_batch_read
+                sample_count += len(x)
 
                 # zero out gradients
                 optimizer.zero_grad()
@@ -133,8 +132,8 @@ def train(args):
 
                 # print out status message
                 if ((batch_num + 1) % 100 == 0):
-                    status = "{}  Epoch {}:  [{}/{}]  Batch:[{}]  AvgContentLoss: {:.5f}  AvgStyleLoss: {:.5f}  AvgTVLoss: {:.5f}  content: {:.5f}  style: {:.5f}  tv: {:.5f} ".format(
-                        time.ctime(), e + 1, img_count, len(train_dataset), batch_num+1,
+                    status = "Time: {}\n  Epoch {}:  [{}/{}]  Batch:[{}]  AvgContentLoss: {:.5f}  AvgStyleLoss: {:.5f}  AvgTVLoss: {:.5f}  content: {:.5f}  style: {:.5f}  tv: {:.5f} \n".format(
+                        time.ctime(), epoch_num + 1, sample_count, dataset_length, batch_num+1,
                         cumulate_content_loss /
                         (batch_num+1.0), cumulate_style_loss /
                         (batch_num+1.0), cumulate_tv_loss/(batch_num+1.0),
@@ -154,19 +153,19 @@ def train(args):
 
                     output_img_1 = image_transformer(img_avocado).cpu()
                     output_img_1_path = (
-                        "visualization/{}/img_avocado_{}_{}.jpg".format(args.model_name, e+1, batch_num+1))
+                        "visualization/{}/img_avocado_{}_{}.jpg".format(args.model_name, epoch_num+1, batch_num+1))
                     restore_and_save_image.save_image(
                         output_img_1_path, output_img_1.data[0])
 
                     output_img_2 = image_transformer(img_cheetah).cpu()
                     output_img_2_path = "visualization/{}/img_cheetah_{}_{}.jpg" % (
-                        args.model_name, e+1, batch_num+1)
+                        args.model_name, epoch_num+1, batch_num+1)
                     restore_and_save_image.save_image(
                         output_img_2_path, output_img_2.data[0])
 
                     output_img_3 = image_transformer(img_quad).cpu()
                     output_img_3_path = "visualization/{}/img_quad_{}_{}.jpg" % (
-                        args.model_name, e+1, batch_num+1)
+                        args.model_name, epoch_num+1, batch_num+1)
                     restore_and_save_image.save_image(
                         output_img_3_path, output_img_3.data[0])
 
