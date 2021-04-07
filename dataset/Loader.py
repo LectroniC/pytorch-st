@@ -14,14 +14,15 @@ import matplotlib.pyplot as plt
 
 #imgae loader class
 class Imageloader():
-    def __init__(self, datadir, batch_size, shuffle = True):
+    def __init__(self, datadir, batch_size, newsize, shuffle = True):
         self.path = datadir
         self.batch_size = batch_size
         self.shuffle = shuffle
+        self.size = newsize
     def loadimage(self):
         dataset_transform = transforms.Compose([
-        transforms.Resize(IMAGE_SIZE),           # scale shortest side to image_size
-        transforms.CenterCrop(IMAGE_SIZE),      # crop center image_size out
+        transforms.Resize(self.size),           # scale shortest side to image_size
+        transforms.CenterCrop(self.size),      # crop center image_size out
         transforms.ToTensor(),                # turn image from [0-255] to [0-1]
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225])
