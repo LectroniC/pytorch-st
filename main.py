@@ -13,6 +13,14 @@ from dataset.loader import get_simple_dataset_transform
 from models.plst import StyleTransferNet, Vgg16, Loss_plst
 
 
+# Reference: https://github.com/dxyang/StyleTransfer/blob/master/style.py
+# Global Variables
+BATCH_SIZE = 4
+LEARNING_RATE = 1e-3
+EPOCHS = 5
+REPORT_FREQ = 1000
+CHECKPOINT_FREQ = 1
+
 # Opens and returns image file as a PIL image (0-255)
 
 def load_image(filename):
@@ -51,15 +59,6 @@ def save_model(model, use_gpu, model_name):
     model.train()
 
 
-# Reference: https://github.com/dxyang/StyleTransfer/blob/master/style.py
-# Global Variables
-BATCH_SIZE = 4
-LEARNING_RATE = 1e-3
-EPOCHS = 5
-REPORT_FREQ = 1000
-CHECKPOINT_FREQ = 1
-
-
 def train(args):
     # GPU enabling
     if (args.gpu != None):
@@ -91,12 +90,14 @@ def train(args):
             img_quad = Variable(img_quad.repeat(1, 1, 1, 1),
                                 requires_grad=False).type(dtype)
 
+        print("Dataset folder "+args.dataset)
         train_dataset = datasets.ImageFolder(args.dataset, simple_transform)
         train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE)
         dataset_length = len(train_dataset)
-        print("Loading total images: "+str(dataset_length))
+        print("Loaded total images: "+str(dataset_length))
 
         # load style image
+        print("Style Image "+args.style_image)
         style = load_image(args.style_image)
         style = simple_transform(style)
         style = Variable(style.repeat(BATCH_SIZE, 1, 1, 1)).type(dtype)
