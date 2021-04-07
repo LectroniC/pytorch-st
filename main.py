@@ -9,7 +9,7 @@ from torch.autograd import Variable
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torchvision import datasets
-from dataset.loader import AvgStyleLoss
+from dataset.loader import get_simple_dataset_transform
 from models.plst import StyleTransferNet, Vgg16, Loss_plst
 
 
