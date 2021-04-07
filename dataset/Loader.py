@@ -19,7 +19,7 @@ def get_simple_dataset_transform(image_dim):
         transforms.CenterCrop(image_dim),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                    std=[0.229, 0.224, 0.225])
+                             std=[0.229, 0.224, 0.225]) # Imagenet stats
     ])
 
 # Image loader class
