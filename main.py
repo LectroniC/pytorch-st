@@ -94,6 +94,7 @@ def train(args):
         train_dataset = datasets.ImageFolder(args.dataset, simple_transform)
         train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE)
         dataset_length = len(train_dataset)
+        print("Loading total "+str(dataset_length))
 
         # load style image
         style = load_image(args.style_image)
