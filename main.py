@@ -38,7 +38,7 @@ def save_model(model, use_gpu, model_name):
     model.eval()
 
     if use_gpu:
-        image_transformer.cpu()
+        model.cpu()
 
     if not os.path.exists("saved_models"):
         os.makedirs("saved_models")
@@ -46,7 +46,7 @@ def save_model(model, use_gpu, model_name):
     torch.save(model.state_dict(), filename)
 
     if use_gpu:
-        image_transformer.cuda()
+        model.cuda()
 
     model.train()
 
