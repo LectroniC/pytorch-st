@@ -189,11 +189,15 @@ def test_loss():
     l3 = L_tv(out)
     print(l3)
 
-def extract_and_calculate_loss(vgg16, style_img, out):
-    # torch.randn(20, 3, 256, 256)
-    # TODO: Wrap the loss function.
-    # Return style_loss, content_loss, tv_loss
-    pass
+
+# A class wrapper is better to avoid recalculation of style_features
+class Loss_plst():
+    def __init__(vgg, style_img):
+        pass
+    def extract_and_calculate_loss(self):
+        # TODO: Wrap the loss function.
+        # Return content_loss, style_loss, tv_loss
+        pass
 
 def main():
     test_net()
