@@ -12,20 +12,28 @@ from torchvision import transforms
 from torchvision import utils
 import matplotlib.pyplot as plt
 
-#imgae loader class
+
+def get_simple_dataset_transform(image_dim):
+    return transforms.Compose([
+        transforms.Scale(image_dim),
+        transforms.CenterCrop(image_dim),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                    std=[0.229, 0.224, 0.225])
+    ])
+
+# Image loader class
 class Imageloader():
-    def __init__(self, datadir, batch_size, shuffle = True):
-        self.path = datadir
+    def __init__(self, datadir, batch_size, image_dim, shuffle=True):
+        self.datadir = datadir
         self.batch_size = batch_size
         self.shuffle = shuffle
+        # image is going to be rescaled to 
+        self.image_dim = image_dim
+
     def loadimage(self):
-        dataset_transform = transforms.Compose([
-        transforms.Resize(IMAGE_SIZE),           # scale shortest side to image_size
-        transforms.CenterCrop(IMAGE_SIZE),      # crop center image_size out
-        transforms.ToTensor(),                # turn image from [0-255] to [0-1]
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225])
-        ])
-        train_dataset = datasets.ImageFolder(self.path, dataset_transform)
-        train_loader = DataLoader(train_dataset, batch_size = self.batch_size, shuffle = self.shuffle)
+        dataset_transform = get_simple_dataset_transform(self.batch_size)
+        train_dataset = datasets.ImageFolder(self.datadir, dataset_transform)
+        train_loader = DataLoader(
+            train_dataset, batch_size=self.batch_size, shuffle=self.shuffle)
         return train_loader

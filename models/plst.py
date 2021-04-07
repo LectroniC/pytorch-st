@@ -189,6 +189,10 @@ def test_loss():
     l3 = L_tv(out)
     print(l3)
 
+def extract_and_calculate_loss(vgg16, style_img, out):
+    # torch.randn(20, 3, 256, 256)
+    # TODO: Wrap the loss function.
+
 def main():
     test_net()
     test_vgg()
