@@ -35,14 +35,9 @@ def restore_and_save_image(filename, data):
 
 # Reference: https://github.com/dxyang/StyleTransfer/blob/master/style.py
 # Global Variables
-IMAGE_SIZE = 256
 BATCH_SIZE = 4
 LEARNING_RATE = 1e-3
-EPOCHS = 2
-STYLE_WEIGHT = 1e5
-CONTENT_WEIGHT = 1e0
-TV_WEIGHT = 1e-7
-
+EPOCHS = 5
 
 def train(args):
     # GPU enabling
@@ -59,7 +54,7 @@ def train(args):
         # visualization of training controlled by flag
         visualize = (args.visualize != None)
         if (visualize):
-            simple_transform = get_simple_dataset_transform(512)
+            simple_transform = get_simple_dataset_transform(256)
 
             img_avocado = load_image("sample_images/avocado.jpg")
             img_avocado = simple_transform(img_avocado)
