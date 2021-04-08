@@ -92,7 +92,7 @@ def train(args):
 
         print("Dataset folder "+args.dataset)
         train_dataset = datasets.ImageFolder(args.dataset, simple_transform)
-        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE)
+        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
         dataset_length = len(train_dataset)
         print("Loaded total images: "+str(dataset_length))
 
@@ -122,7 +122,10 @@ def train(args):
             # train network
             image_transformer.train()
             for batch_num, (x, label) in enumerate(train_loader):
-
+                
+                if (len(x) < BATCH_SIZE):
+                    print("Skip due to insufficient batch size")
+                    continue
                 # Forward
                 optimizer.zero_grad()
                 x = Variable(x).type(dtype)
