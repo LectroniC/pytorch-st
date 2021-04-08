@@ -215,7 +215,7 @@ def test_loss():
 
 # A class wrapper is better to avoid recalculation of style_features
 class Loss_plst():
-    def __init__(self, vgg, style_img, lambda_c=1.0, lambda_s=7.5,  lambda_tv=1.0):
+    def __init__(self, vgg, style_img, lambda_c=1.0, lambda_s=1.0,  lambda_tv=1.0):
         # Style image
         self.vgg = vgg
         self.style_img = style_img
