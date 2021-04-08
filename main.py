@@ -16,7 +16,7 @@ from models.plst import StyleTransferNet, Vgg16, Loss_plst
 # Reference: https://github.com/dxyang/StyleTransfer/blob/master/style.py
 # Global Variables
 BATCH_SIZE = 4
-LEARNING_RATE = 1e-3
+LEARNING_RATE = 0.1
 EPOCHS = 4
 REPORT_BATCH_FREQ = 1000
 CHECKPOINT_SAVE_EPOCH_FREQ = 1
@@ -92,7 +92,7 @@ def train(args):
 
         print("Dataset folder "+args.dataset)
         train_dataset = datasets.ImageFolder(args.dataset, simple_transform)
-        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE)
+        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
         dataset_length = len(train_dataset)
         print("Loaded total images: "+str(dataset_length))
 
