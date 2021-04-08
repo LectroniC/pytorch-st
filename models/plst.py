@@ -8,7 +8,6 @@ import torchvision.models as models
 torch.manual_seed(0)
 ### image transformation network ###
 
-
 class ResidualBlock(nn.Module):
     """residual block used in style transfer net"""
 
@@ -56,13 +55,13 @@ class StyleTransferNet(nn.Module):
         self.ref_pad = nn.ReflectionPad2d(40)
         self.conv_1 = nn.Conv2d(3, 32, kernel_size=9,
                                 stride=1, padding=4, padding_mode='reflect')
-        self.in_1 = nn.InstanceNorm2d(32)
+        self.in_1 = nn.InstanceNorm2d(32,affine=True)
         self.conv_2 = nn.Conv2d(32, 64, kernel_size=3,
                                 stride=2, padding=1, padding_mode='reflect')
-        self.in_2 = nn.InstanceNorm2d(64)
+        self.in_2 = nn.InstanceNorm2d(64,affine=True)
         self.conv_3 = nn.Conv2d(64, 128, kernel_size=3,
                                 stride=2, padding=1, padding_mode='reflect')
-        self.in_3 = nn.InstanceNorm2d(128)
+        self.in_3 = nn.InstanceNorm2d(128,affine=True)
 
         self.res_1 = ResidualBlock(128)
         self.res_2 = ResidualBlock(128)
@@ -70,19 +69,19 @@ class StyleTransferNet(nn.Module):
         self.res_4 = ResidualBlock(128)
         self.res_5 = ResidualBlock(128)
 
-        # self.conv_t_1 = nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1)
         self.up_1 = UpsampleConvLayer(
             128, 64, kernel_size=3, stride=1, upsample=2)
-        self.in_4 = nn.InstanceNorm2d(64)
-        # self.conv_t_2 = nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1)
+        
+        self.in_4 = nn.InstanceNorm2d(64,affine=True)
+        
         self.up_2 = UpsampleConvLayer(
             64, 32, kernel_size=3, stride=1, upsample=2)
-        self.in_5 = nn.InstanceNorm2d(32)
+        self.in_5 = nn.InstanceNorm2d(32,affine=True)
         self.conv_f = nn.Conv2d(32, 3, kernel_size=9,
                                 stride=1, padding=4, padding_mode='reflect')
-
+        
+        self.in_out = nn.InstanceNorm2d(3,affine=True)
         self.relu = nn.ReLU()
-        self.tanh = nn.Tanh()
 
     def forward(self, x):
         """ input:  [N, 3, 256, 256]
@@ -94,7 +93,8 @@ class StyleTransferNet(nn.Module):
         x = self.res_5(self.res_4(self.res_3(self.res_2(self.res_1(x)))))
         x = self.relu(self.in_4(self.up_1(x)))
         x = self.relu(self.in_5(self.up_2(x)))
-        x = self.tanh(self.conv_f(x))
+        x = self.conv_f(x)
+        x = self.in_out(x)
         return x
 
 ### vgg16 network for loss computation ###
@@ -212,7 +212,6 @@ def test_loss():
     l3 = L_tv(out)
     print(l3)
 
-
 # A class wrapper is better to avoid recalculation of style_features
 class Loss_plst():
     def __init__(self, vgg, style_img, lambda_c=1.0, lambda_s=1.0,  lambda_tv=1.0):
@@ -227,13 +226,14 @@ class Loss_plst():
     def extract_and_calculate_loss(self, x, y_hat):
         # TODO: Wrap the loss function.
         # Return content_loss, style_loss, tv_loss
-        _, content_target, _, _ = self.vgg(x)
+        _, _, content_target, _ = self.vgg(x)
         content_relu1_2, content_relu2_2, content_relu3_3, content_relu4_3 = self.vgg(y_hat)
-        loss_c = L_feat(content_relu2_2, content_target)
+        loss_c = L_feat(content_relu3_3, content_target)
         loss_s = L_style(content_relu1_2, self.style_relu1_2) + L_style(content_relu2_2, self.style_relu2_2)+ \
             L_style(content_relu3_3, self.style_relu3_3) + L_style(content_relu4_3, self.style_relu4_3)
         loss_tv = L_tv(y_hat)
         return self.lambda_c * loss_c, self.lambda_s * loss_s, self.lambda_tv * loss_tv
+
 
 
 def main():

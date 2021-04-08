@@ -18,7 +18,7 @@ from models.plst import StyleTransferNet, Vgg16, Loss_plst
 BATCH_SIZE = 4
 LEARNING_RATE = 0.1
 EPOCHS = 4
-REPORT_BATCH_FREQ = 1000
+REPORT_BATCH_FREQ = 100
 CHECKPOINT_SAVE_EPOCH_FREQ = 1
 
 # Opens and returns image file as a PIL image (0-255)
@@ -168,26 +168,27 @@ def train(args):
 
                     image_transformer.eval()
 
+                    folder_name = args.model_name+"_"+args.visualization_folder_id
                     if not os.path.exists("visualization"):
                         os.makedirs("visualization")
-                    if not os.path.exists("visualization/%s" % args.model_name):
-                        os.makedirs("visualization/%s" % args.model_name)
+                    if not os.path.exists("visualization/{}".format(folder_name)):
+                        os.makedirs("visualization/{}".format(folder_name))
 
                     output_img_1 = image_transformer(img_avocado).cpu()
                     output_img_1_path = (
-                        "visualization/{}/{}_{}_img_avocado.jpg".format(args.model_name, str(epoch_num+1), str(batch_num+1)))
+                        "visualization/{}/{}_{}_img_avocado.jpg".format(folder_name, str(epoch_num+1), str(batch_num+1)))
                     restore_and_save_image(
                         output_img_1_path, output_img_1.data[0])
 
                     output_img_2 = image_transformer(img_cheetah).cpu()
                     output_img_2_path = "visualization/{}/{}_{}_img_cheetah.jpg".format(
-                        args.model_name, str(epoch_num+1), str(batch_num+1))
+                        folder_name, str(epoch_num+1), str(batch_num+1))
                     restore_and_save_image(
                         output_img_2_path, output_img_2.data[0])
 
                     output_img_3 = image_transformer(img_quad).cpu()
                     output_img_3_path = "visualization/{}/{}_{}_img_quad.jpg".format(
-                        args.model_name, str(epoch_num+1), str(batch_num+1))
+                        folder_name, str(epoch_num+1), str(batch_num+1))
                     restore_and_save_image(
                         output_img_3_path, output_img_3.data[0])
 
@@ -242,9 +243,11 @@ def main():
     train_parser.add_argument("--c", type=float,
                               default=1.0, help="Hyperparameter weight for content loss.")
     train_parser.add_argument("--s", type=float,
-                              default=30.0, help="Hyperparameter weight for style loss.")
+                              default=7.5, help="Hyperparameter weight for style loss.")
     train_parser.add_argument("--tv", type=float,
                               default=1.0, help="Hyperparameter weight for tv loss.")
+    train_parser.add_argument("--visualization-folder-id", type=str,
+                              default=time.ctime(), help="Visualization folder id.")
 
 
     transfer_parser = subparsers.add_parser("transfer")
