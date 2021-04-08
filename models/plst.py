@@ -140,7 +140,7 @@ class Vgg16(torch.nn.Module):
 
 def L_feat(feats, targets):
     """ compute feature reconstruction loss
-        input: [C, H, W]
+        input: [B, C, H, W]
         output: scalar tensor
     """
     criterion = nn.MSELoss(reduction='mean')
@@ -157,7 +157,7 @@ def gram_matrix(input):
 
 def L_style(feats, targets):
     """ compute style reconstruction loss (for single input/target pair)
-        input: [C, H, W]
+        input: [B, C, H, W]
         output: scalar tensor
     """
     criterion = nn.MSELoss(reduction='mean')
