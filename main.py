@@ -109,7 +109,11 @@ def train(args):
         # Initialize vgg network for loss
         vgg = Vgg16().type(dtype)
 
-        loss_plst = Loss_plst(vgg, style)
+        loss_plst = Loss_plst(vgg, style, \
+            lambda_c=args.c, 
+            lambda_s=args.s,  
+            lambda_tv=args.tv
+        )
 
         best_total_loss = None
         for epoch_num in range(EPOCHS):
@@ -232,6 +236,13 @@ def main():
         "--gpu", type=int, default=None, help="GPU ID to use. None to use CPU")
     train_parser.add_argument("--visualization-freq", type=int,
                               default=0, help="Set the frequency of visualization. This is to the granularity of batches.")
+    train_parser.add_argument("--c", type=float,
+                              default=1.0, help="Hyperparameter weight for content loss.")
+    train_parser.add_argument("--s", type=float,
+                              default=30.0, help="Hyperparameter weight for style loss.")
+    train_parser.add_argument("--tv", type=float,
+                              default=1.0, help="Hyperparameter weight for tv loss.")
+
 
     transfer_parser = subparsers.add_parser("transfer")
     transfer_parser.add_argument(
