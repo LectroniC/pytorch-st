@@ -18,7 +18,7 @@ from models.plst import StyleTransferNet, Vgg16, Loss_plst
 BATCH_SIZE = 4
 LEARNING_RATE = 0.1
 EPOCHS = 4
-REPORT_BATCH_FREQ = 100
+REPORT_BATCH_FREQ = 1000
 CHECKPOINT_SAVE_EPOCH_FREQ = 1
 
 # Opens and returns image file as a PIL image (0-255)
