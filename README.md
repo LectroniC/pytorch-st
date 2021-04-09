@@ -1,4 +1,4 @@
-# pytorch-st: A-library-for-real-time-style-transfer
+# pytorchst: A-library-for-real-time-style-transfer
 
 PyTorch implementation for different style-transfer model
 
