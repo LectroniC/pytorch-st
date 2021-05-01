@@ -272,6 +272,10 @@ class Loss_msg():
         self.lambda_tv = lambda_tv
         self.style_relu1_2, self.style_relu2_2, self.style_relu3_3, self.style_relu4_3 = self.vgg(self.style_img)
 
+    def update_style_feats(style_img):
+        self.style_img = style_img
+        self.style_relu1_2, self.style_relu2_2, self.style_relu3_3, self.style_relu4_3 = self.vgg(self.style_img)
+        
     def extract_and_calculate_loss(self, x, y_hat):
         # TODO: Wrap the loss function.
         # Return content_loss, style_loss, tv_loss
