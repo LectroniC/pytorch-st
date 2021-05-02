@@ -237,6 +237,8 @@ def train(args):
         style_transform = get_simple_dataset_transform(256)
         style_dataset = datasets.ImageFolder(args.style_image, style_transform)
         style_loader = DataLoader(style_dataset, batch_size=1, shuffle=False)
+        style_length = len(style_dataset)
+        print("Loaded style images: "+str(style_length))
 
         # define network
         image_transformer = MSGNet().type(dtype)
@@ -265,11 +267,12 @@ def train(args):
             image_transformer.train()
             for batch_num, (x, label) in enumerate(train_loader):
                 # get current style_image from style_iterator
+                print('current batch: ', batch_num)
                 try:
-                    style = next(style_iterator)
+                    style = next(style_iterator)[0].type(dtype)
                 except StopIteration:
                     style_iterator = iter(style_loader)
-                    style = next(style_iterator)
+                    style = next(style_iterator)[0].type(dtype)
                 
                 # set style target
                 image_transformer.set_target(style)
@@ -280,7 +283,7 @@ def train(args):
                 y_hat = image_transformer(x)
 
                 # calculate loss
-                loss_msg.update_style_feats(style)
+                loss_msg.update_style_feats(style, BATCH_SIZE)
                 content_loss, style_loss, tv_loss = loss_msg.extract_and_calculate_loss(x, y_hat)
 
                 cumulate_content_loss += content_loss
@@ -322,7 +325,8 @@ def train(args):
                         os.makedirs("visualization/{}".format(folder_name))
 
                     # style_0
-                    style = style_dataset.__getitem__(0)
+                    style, _ = style_dataset.__getitem__(0)
+                    style = torch.unsqueeze(0)
                     image_transformer.set_target(style)
                     
                     output_img_1 = image_transformer(img_avocado).cpu()
@@ -344,7 +348,8 @@ def train(args):
                         output_img_3_path, output_img_3.data[0])
 
                     # style_1
-                    style = style_dataset.__getitem__(1)
+                    style, _ = style_dataset.__getitem__(1)
+                    style = torch.unsqueeze(0)
                     image_transformer.set_target(style)
                     
                     output_img_1 = image_transformer(img_avocado).cpu()

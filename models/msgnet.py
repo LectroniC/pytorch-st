@@ -266,15 +266,18 @@ class Loss_msg():
     def __init__(self, vgg, lambda_c=1.0, lambda_s=1.0,  lambda_tv=1.0):
         # Style image
         self.vgg = vgg
-        self.style_img = style_img
         self.lambda_c = lambda_c
         self.lambda_s = lambda_s
         self.lambda_tv = lambda_tv
 
-    def update_style_feats(style_img):
+    def update_style_feats(self, style_img, batch_size):
         # need to be called before loss calculation
         self.style_img = style_img
         self.style_relu1_2, self.style_relu2_2, self.style_relu3_3, self.style_relu4_3 = self.vgg(self.style_img)
+        self.style_relu1_2 = self.style_relu1_2.repeat(batch_size, 1, 1, 1)
+        self.style_relu2_2 = self.style_relu2_2.repeat(batch_size, 1, 1, 1)
+        self.style_relu3_3 = self.style_relu3_3.repeat(batch_size, 1, 1, 1)
+        self.style_relu4_3 = self.style_relu4_3.repeat(batch_size, 1, 1, 1)
         
     def extract_and_calculate_loss(self, x, y_hat):
         # TODO: Wrap the loss function.
