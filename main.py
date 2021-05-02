@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from dataset.loader import get_simple_dataset_transform
 from models.plst import StyleTransferNet, Vgg16, Loss_plst
-
+from models.msgnet import MSGNet, Loss_msg
 
 # Reference: https://github.com/dxyang/StyleTransfer/blob/master/style.py
 # Global Variables
@@ -71,6 +71,7 @@ def train(args):
         use_gpu = False
 
     if args.model_name == "plst":
+        print("Training model PLST...")
         # visualization of training controlled by flag
         if (args.visualization_freq != 0):
             simple_transform = get_simple_dataset_transform(256)
@@ -201,6 +202,179 @@ def train(args):
         # save model
         save_model(image_transformer, use_gpu, args.model_name+"_final")
 
+    if args.model_name == "msgnet":
+        # MSG Net training pipeline
+        print("Training model MSGNet...")
+        # visualization of training controlled by flag
+        if (args.visualization_freq != 0):
+            simple_transform = get_simple_dataset_transform(256)
+
+            img_avocado = load_image("sample_images/avocado.jpg")
+            img_avocado = simple_transform(img_avocado)
+            img_avocado = Variable(img_avocado.repeat(
+                1, 1, 1, 1), requires_grad=False).type(dtype)
+
+            img_cheetah = load_image("sample_images/cheetah.jpg")
+            img_cheetah = simple_transform(img_cheetah)
+            img_cheetah = Variable(img_cheetah.repeat(
+                1, 1, 1, 1), requires_grad=False).type(dtype)
+
+            img_quad = load_image("sample_images/quad.jpg")
+            img_quad = simple_transform(img_quad)
+            img_quad = Variable(img_quad.repeat(1, 1, 1, 1),
+                                requires_grad=False).type(dtype)
+
+        # content image dataset loader
+        print("Content dataset folder "+args.dataset)
+        content_transform = get_simple_dataset_transform(256)
+        train_dataset = datasets.ImageFolder(args.dataset, content_transform)
+        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)
+        dataset_length = len(train_dataset)
+        print("Loaded total images: "+str(dataset_length))
+
+        # style image dataset loader
+        print("Style dataset folder"+args.style_image)
+        style_transform = get_simple_dataset_transform(256)
+        style_dataset = datasets.ImageFolder(args.style_image, style_transform)
+        style_loader = DataLoader(style_dataset, batch_size=1, shuffle=False)
+
+        # define network
+        image_transformer = MSGNet().type(dtype)
+        optimizer = Adam(image_transformer.parameters(), LEARNING_RATE)
+
+        # Initialize vgg network for loss
+        vgg = Vgg16().type(dtype)
+        loss_msg = Loss_msg(vgg, \
+            lambda_c=args.c, 
+            lambda_s=args.s,  
+            lambda_tv=args.tv
+        )
+
+        best_total_loss = None
+        for epoch_num in range(EPOCHS):
+
+            sample_count = 0
+            cumulate_content_loss = 0
+            cumulate_style_loss = 0
+            cumulate_tv_loss = 0
+
+            # explicity setup style iterator.
+            style_iterator = iter(style_loader)
+
+            # train network
+            image_transformer.train()
+            for batch_num, (x, label) in enumerate(train_loader):
+                # get current style_image from style_iterator
+                try:
+                    style = next(style_iterator)
+                except StopIteration:
+                    style_iterator = iter(style_loader)
+                    style = next(style_iterator)
+                
+                # set style target
+                image_transformer.set_target(style)
+                
+                # Forward
+                optimizer.zero_grad()
+                x = Variable(x).type(dtype)
+                y_hat = image_transformer(x)
+
+                # calculate loss
+                loss_msg.update_style_feats(style)
+                content_loss, style_loss, tv_loss = loss_msg.extract_and_calculate_loss(x, y_hat)
+
+                cumulate_content_loss += content_loss
+                cumulate_style_loss += style_loss
+                cumulate_tv_loss += tv_loss
+                total_loss = content_loss + style_loss + tv_loss
+
+                # Backprop
+                total_loss.backward()
+                optimizer.step()
+
+                sample_count += len(x)
+
+                # Showing training message (Could incorporate other backends in the future)
+                if ((batch_num + 1) % REPORT_BATCH_FREQ == 0):
+                    status = "Time: {}\n  Epoch {}:  [{}/{}]  Batch:[{}]  AvgContentLoss: {:.5f}  AvgStyleLoss: {:.5f}  AvgTVLoss: {:.5f}  content: {:.5f}  style: {:.5f}  tv: {:.5f} \n".format(
+                        time.ctime(), epoch_num + 1, sample_count, dataset_length, batch_num+1,
+                        cumulate_content_loss /
+                        (batch_num+1.0), cumulate_style_loss /
+                        (batch_num+1.0), cumulate_tv_loss/(batch_num+1.0),
+                        content_loss, style_loss, tv_loss
+                    )
+                    print(status)
+
+                # if best_total_loss == None or total_loss < best_total_loss:
+                #     best_total_loss = total_loss
+                #     save_model(image_transformer, use_gpu,
+                #                args.model_name+"_best")
+
+                if args.visualization_freq != 0 and ((batch_num + 1) % args.visualization_freq == 0):
+                    print("Write vis images to folder.")
+
+                    image_transformer.eval()
+
+                    folder_name = args.model_name+"_"+args.visualization_folder_id
+                    if not os.path.exists("visualization"):
+                        os.makedirs("visualization")
+                    if not os.path.exists("visualization/{}".format(folder_name)):
+                        os.makedirs("visualization/{}".format(folder_name))
+
+                    # style_0
+                    style = style_dataset.__getitem__(0)
+                    image_transformer.set_target(style)
+                    
+                    output_img_1 = image_transformer(img_avocado).cpu()
+                    output_img_1_path = (
+                        "visualization/{}/{}_{}_img_avocado_style_0.jpg".format(folder_name, str(epoch_num+1), str(batch_num+1)))
+                    restore_and_save_image(
+                        output_img_1_path, output_img_1.data[0])
+
+                    output_img_2 = image_transformer(img_cheetah).cpu()
+                    output_img_2_path = "visualization/{}/{}_{}_img_cheetah_style_0.jpg".format(
+                        folder_name, str(epoch_num+1), str(batch_num+1))
+                    restore_and_save_image(
+                        output_img_2_path, output_img_2.data[0])
+
+                    output_img_3 = image_transformer(img_quad).cpu()
+                    output_img_3_path = "visualization/{}/{}_{}_img_quad_style_0.jpg".format(
+                        folder_name, str(epoch_num+1), str(batch_num+1))
+                    restore_and_save_image(
+                        output_img_3_path, output_img_3.data[0])
+
+                    # style_1
+                    style = style_dataset.__getitem__(1)
+                    image_transformer.set_target(style)
+                    
+                    output_img_1 = image_transformer(img_avocado).cpu()
+                    output_img_1_path = (
+                        "visualization/{}/{}_{}_img_avocado_style_1.jpg".format(folder_name, str(epoch_num+1), str(batch_num+1)))
+                    restore_and_save_image(
+                        output_img_1_path, output_img_1.data[0])
+
+                    output_img_2 = image_transformer(img_cheetah).cpu()
+                    output_img_2_path = "visualization/{}/{}_{}_img_cheetah_style_1.jpg".format(
+                        folder_name, str(epoch_num+1), str(batch_num+1))
+                    restore_and_save_image(
+                        output_img_2_path, output_img_2.data[0])
+
+                    output_img_3 = image_transformer(img_quad).cpu()
+                    output_img_3_path = "visualization/{}/{}_{}_img_quad_style_1.jpg".format(
+                        folder_name, str(epoch_num+1), str(batch_num+1))
+                    restore_and_save_image(
+                        output_img_3_path, output_img_3.data[0])
+
+
+                    image_transformer.train()
+            # Save model
+            if ((epoch_num + 1) % CHECKPOINT_SAVE_EPOCH_FREQ == 0):
+                save_model(image_transformer, use_gpu,
+                           args.model_name+"_"+str(epoch_num + 1))
+
+        # save model
+        save_model(image_transformer, use_gpu, args.model_name+"_final")
+
 
 def style_transfer(args):
     # GPU enabling
@@ -231,7 +405,7 @@ def main():
     subparsers = parser.add_subparsers(title="subcommands", dest="subcommand")
     train_parser = subparsers.add_parser("train")
     train_parser.add_argument("--model-name", type=str,
-                              default="plst", help="model chooses for training.")
+                              default="msgnet", help="model chooses for training.")
     train_parser.add_argument(
         "--style-image", type=str, required=True, help="path to a style image to train with")
     train_parser.add_argument("--dataset", type=str,
