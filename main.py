@@ -17,7 +17,8 @@ from models.msgnet import MSGNet, Loss_msg
 # Global Variables
 BATCH_SIZE = 4
 LEARNING_RATE = 0.1
-EPOCHS = 4
+EPOCHS = 2
+
 REPORT_BATCH_FREQ = 1000
 CHECKPOINT_SAVE_EPOCH_FREQ = 1
 
@@ -234,14 +235,14 @@ def train(args):
 
         # style image dataset loader
         print("Style dataset folder"+args.style_image)
-        style_transform = get_simple_dataset_transform(256)
+        style_transform = get_simple_dataset_transform(512)
         style_dataset = datasets.ImageFolder(args.style_image, style_transform)
         style_loader = DataLoader(style_dataset, batch_size=1, shuffle=False)
         style_length = len(style_dataset)
         print("Loaded style images: "+str(style_length))
 
         # define network
-        image_transformer = MSGNet().type(dtype)
+        image_transformer = MSGNet(block_size=128).type(dtype)
         optimizer = Adam(image_transformer.parameters(), LEARNING_RATE)
 
         # Initialize vgg network for loss
