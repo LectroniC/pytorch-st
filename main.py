@@ -326,7 +326,7 @@ def train(args):
 
                     # style_0
                     style, _ = style_dataset.__getitem__(0)
-                    style = torch.unsqueeze(0)
+                    style = torch.unsqueeze(style, 0).type(dtype)
                     image_transformer.set_target(style)
                     
                     output_img_1 = image_transformer(img_avocado).cpu()
@@ -349,7 +349,7 @@ def train(args):
 
                     # style_1
                     style, _ = style_dataset.__getitem__(1)
-                    style = torch.unsqueeze(0)
+                    style = torch.unsqueeze(style, 0).type(dtype)
                     image_transformer.set_target(style)
                     
                     output_img_1 = image_transformer(img_avocado).cpu()
