@@ -16,7 +16,8 @@ from models.msgnet import MSGNet, Loss_msg
 # Reference: https://github.com/dxyang/StyleTransfer/blob/master/style.py
 # Global Variables
 BATCH_SIZE = 4
-LEARNING_RATE = 0.1
+LEARNING_RATE = 0.1     # this is for plst
+LEARNING_RATE = 1e-3    # this is for msgnet
 EPOCHS = 2
 
 REPORT_BATCH_FREQ = 1000
@@ -268,7 +269,6 @@ def train(args):
             image_transformer.train()
             for batch_num, (x, label) in enumerate(train_loader):
                 # get current style_image from style_iterator
-                print('current batch: ', batch_num)
                 try:
                     style = next(style_iterator)[0].type(dtype)
                 except StopIteration:
