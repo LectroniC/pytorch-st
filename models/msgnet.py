@@ -205,7 +205,7 @@ def gram_matrix_loss(input):
     b, c, h, w = input.size()
     features = input.view(b, c, h * w)
     G = torch.bmm(features, features.transpose(1, 2))
-    return G.div(c * h * w)
+    return G.div(h * w)
 
 
 def L_style(feats, targets):
@@ -290,9 +290,9 @@ class Loss_msg():
     def extract_and_calculate_loss(self, x, y_hat):
         # TODO: Wrap the loss function.
         # Return content_loss, style_loss, tv_loss
-        _, content_target, _, _ = self.vgg(x)
+        _, _, content_target, _ = self.vgg(x)
         content_relu1_2, content_relu2_2, content_relu3_3, content_relu4_3 = self.vgg(y_hat)
-        loss_c = L_feat(content_relu2_2, content_target)
+        loss_c = L_feat(content_relu3_3, content_target)
         loss_s = L_style(content_relu1_2, self.style_relu1_2) + L_style(content_relu2_2, self.style_relu2_2)+ \
             L_style(content_relu3_3, self.style_relu3_3) + L_style(content_relu4_3, self.style_relu4_3)
         loss_tv = L_tv(y_hat)
