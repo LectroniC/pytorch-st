@@ -65,13 +65,17 @@ class DownSampleResidualBlock(nn.Module):
         self.downsample = downsample
         if self.downsample is not None:
             self.res_layer = nn.Conv2d(in_channels, out_block_channels*4, kernel_size=1, stride=stride)
+        
+        self.in_1 = nn.InstanceNorm2d(in_channels)
         self.conv_1 = nn.Conv2d(in_channels, out_block_channels, kernel_size=1, stride=1)
-        self.in_1 = nn.InstanceNorm2d(out_block_channels)
-        self.conv_2 = nn.Conv2d(out_block_channels, out_block_channels, kernel_size=3, stride=stride, padding=1, padding_mode='reflect')
+        
         self.in_2 = nn.InstanceNorm2d(out_block_channels)
+        self.conv_2 = nn.Conv2d(out_block_channels, out_block_channels, kernel_size=3, stride=stride, padding=1, padding_mode='reflect')
+        
+        self.in_3 = nn.InstanceNorm2d(out_block_channels)
         self.conv_3 = nn.Conv2d(out_block_channels, out_block_channels*4, kernel_size=1, stride=1)
-        self.in_3 = nn.InstanceNorm2d(out_block_channels*4)
-        self.relu = nn.ReLU()
+        
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
         """input: [N, C, H, W]"""
@@ -79,9 +83,9 @@ class DownSampleResidualBlock(nn.Module):
             residual = self.res_layer(x)
         else:
             residual = x
-        x = self.relu(self.in_1(self.conv_1(x)))
-        x = self.relu(self.in_2(self.conv_2(x)))
-        x = self.in_3(self.conv_3(x))
+        x = self.conv_1(self.relu(self.in_1(x)))
+        x = self.conv_2(self.relu(self.in_2(x)))
+        x = self.conv_3(self.relu(self.in_3(x)))
         x = x + residual
         return x
 
@@ -90,20 +94,24 @@ class UpSampleResidualBlock(nn.Module):
     def __init__(self, in_channels, out_block_channels, stride=2):
         super(UpSampleResidualBlock, self).__init__()
         self.res_layer = UpsampleConvLayer(in_channels, out_block_channels*4, kernel_size=1, stride=1, upsample=stride)
+        
+        self.in_1 = nn.InstanceNorm2d(in_channels)
         self.conv_1 = nn.Conv2d(in_channels, out_block_channels, kernel_size=1, stride=1)
-        self.in_1 = nn.InstanceNorm2d(out_block_channels)
-        self.conv_2 = UpsampleConvLayer(out_block_channels, out_block_channels, kernel_size=3, stride=1, upsample=stride)
+        
         self.in_2 = nn.InstanceNorm2d(out_block_channels)
+        self.conv_2 = UpsampleConvLayer(out_block_channels, out_block_channels, kernel_size=3, stride=1, upsample=stride)
+        
+        self.in_3 = nn.InstanceNorm2d(out_block_channels)
         self.conv_3 = nn.Conv2d(out_block_channels, out_block_channels*4, kernel_size=1, stride=1)
-        self.in_3 = nn.InstanceNorm2d(out_block_channels*4)
-        self.relu = nn.ReLU()
+        
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
         """input: [N, C, H, W]"""
         residual = self.res_layer(x)
-        x = self.relu(self.in_1(self.conv_1(x)))
-        x = self.relu(self.in_2(self.conv_2(x)))
-        x = self.in_3(self.conv_3(x))
+        x = self.conv_1(self.relu(self.in_1(x)))
+        x = self.conv_2(self.relu(self.in_2(x)))
+        x = self.conv_3(self.relu(self.in_3(x)))
         x = x + residual
         return x
 
@@ -282,9 +290,9 @@ class Loss_msg():
     def extract_and_calculate_loss(self, x, y_hat):
         # TODO: Wrap the loss function.
         # Return content_loss, style_loss, tv_loss
-        _, _, content_target, _ = self.vgg(x)
+        _, content_target, _, _ = self.vgg(x)
         content_relu1_2, content_relu2_2, content_relu3_3, content_relu4_3 = self.vgg(y_hat)
-        loss_c = L_feat(content_relu3_3, content_target)
+        loss_c = L_feat(content_relu2_2, content_target)
         loss_s = L_style(content_relu1_2, self.style_relu1_2) + L_style(content_relu2_2, self.style_relu2_2)+ \
             L_style(content_relu3_3, self.style_relu3_3) + L_style(content_relu4_3, self.style_relu4_3)
         loss_tv = L_tv(y_hat)
