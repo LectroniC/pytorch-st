@@ -349,7 +349,7 @@ def train(args):
                         output_img_3_path, output_img_3.data[0])
 
                     # style_1
-                    style, _ = style_dataset.__getitem__(1)
+                    style, _ = style_dataset.__getitem__(8)
                     style = torch.unsqueeze(style, 0).type(dtype)
                     image_transformer.set_target(style)
                     
