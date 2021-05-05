@@ -21,6 +21,7 @@ LEARNING_RATE = 1e-3    # this is for msgnet
 EPOCHS = 2
 
 REPORT_BATCH_FREQ = 1000
+LOG_LOSS_VALUE_FREQ = 100
 CHECKPOINT_SAVE_EPOCH_FREQ = 1
 
 # Opens and returns image file as a PIL image (0-255)
@@ -72,10 +73,8 @@ def train(args):
         dtype = torch.FloatTensor
         use_gpu = False
 
-    if args.model_name == "plst":
-        print("Training model PLST...")
-        # visualization of training controlled by flag
-        if (args.visualization_freq != 0):
+    # visualization of training controlled by flag
+    if (args.visualization_freq != 0):
             simple_transform = get_simple_dataset_transform(256)
 
             img_avocado = load_image("sample_images/avocado.jpg")
@@ -93,6 +92,9 @@ def train(args):
             img_quad = Variable(img_quad.repeat(1, 1, 1, 1),
                                 requires_grad=False).type(dtype)
 
+    if args.model_name == "plst":
+        print("Training model PLST...")
+        
         print("Dataset folder "+args.dataset)
         train_dataset = datasets.ImageFolder(args.dataset, simple_transform)
         train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
@@ -160,6 +162,18 @@ def train(args):
                         content_loss, style_loss, tv_loss
                     )
                     print(status)
+                
+                if args.loss_log_path is not None:
+                    log_line = "{},{},{},{},{},{},{},{},{},{},{}\n".format(
+                        time.ctime(), epoch_num + 1, sample_count, dataset_length, batch_num+1,
+                        cumulate_content_loss /
+                        (batch_num+1.0), cumulate_style_loss /
+                        (batch_num+1.0), cumulate_tv_loss/(batch_num+1.0),
+                        content_loss, style_loss, tv_loss
+                    )
+                    if((batch_num + 1) % LOG_LOSS_VALUE_FREQ==0):
+                        with open(args.loss_log_path, "a") as f:
+                            f.write(log_line)
 
                 # if best_total_loss == None or total_loss < best_total_loss:
                 #     best_total_loss = total_loss
@@ -208,23 +222,6 @@ def train(args):
         # MSG Net training pipeline
         print("Training model MSGNet...")
         # visualization of training controlled by flag
-        if (args.visualization_freq != 0):
-            simple_transform = get_simple_dataset_transform(256)
-
-            img_avocado = load_image("sample_images/avocado.jpg")
-            img_avocado = simple_transform(img_avocado)
-            img_avocado = Variable(img_avocado.repeat(
-                1, 1, 1, 1), requires_grad=False).type(dtype)
-
-            img_cheetah = load_image("sample_images/cheetah.jpg")
-            img_cheetah = simple_transform(img_cheetah)
-            img_cheetah = Variable(img_cheetah.repeat(
-                1, 1, 1, 1), requires_grad=False).type(dtype)
-
-            img_quad = load_image("sample_images/quad.jpg")
-            img_quad = simple_transform(img_quad)
-            img_quad = Variable(img_quad.repeat(1, 1, 1, 1),
-                                requires_grad=False).type(dtype)
 
         # content image dataset loader
         print("Content dataset folder "+args.dataset)
@@ -307,7 +304,18 @@ def train(args):
                         (batch_num+1.0), cumulate_tv_loss/(batch_num+1.0),
                         content_loss, style_loss, tv_loss
                     )
-                    print(status)
+                if args.loss_log_path is not None:
+                    log_line = "{},{},{},{},{},{},{},{},{},{},{}\n".format(
+                        time.ctime(), epoch_num + 1, sample_count, dataset_length, batch_num+1,
+                        cumulate_content_loss /
+                        (batch_num+1.0), cumulate_style_loss /
+                        (batch_num+1.0), cumulate_tv_loss/(batch_num+1.0),
+                        content_loss, style_loss, tv_loss
+                    )
+                    if((batch_num + 1) % LOG_LOSS_VALUE_FREQ==0):
+                        with open(args.loss_log_path, "a") as f:
+                            f.write(log_line)
+
 
                 # if best_total_loss == None or total_loss < best_total_loss:
                 #     best_total_loss = total_loss
@@ -439,6 +447,10 @@ def main():
         "--output", type=str, required=True, help="file name for stylized output image")
     transfer_parser.add_argument(
         "--gpu", type=int, default=None, help="GPU ID to use. None to use CPU")
+    
+    # TODO: Might be able to use tensorboard
+    transfer_parser.add_argument(
+        "--loss-log-path", type=str, default=None, help="Log loss value to file. The mode is append.")
 
     transfer_parser = subparsers.add_parser("evaluate")
     # TODO: Add helpers on evaluating models.
