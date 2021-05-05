@@ -48,16 +48,17 @@ def draw_loss_plot_simple(input_log_path="./loss/plst_la_muse.csv",fig_file_name
     plt.grid()
     plt.savefig(fig_file_name)
 
-def draw_loss_plot_multiple(input_log_paths=["./loss/msgnet_all.csv", "./loss/plst_la_muse.csv", "./loss/plst_starry_night.csv"], fig_file_name="loss_graph_all.pdf",granularity=10):
+def draw_loss_plot_multiple(input_log_paths=["./loss/msgnet_all.csv", "./loss/plst_la_muse.csv", "./loss/plst_starry_night.csv"], fig_file_name="loss_graph_all.pdf",tick_granularity=100):
     figure(figsize=(9, 5))
     for log_path in input_log_paths:
         losses = parse_log_file(log_path)
-        losses = losses[::granularity]
         y = np.asarray(losses)
         plt.title("Loss Curve")
-        plt.xlabel("Samples (Taken every 100*{} batches)".format(str(granularity))) 
+        plt.xlabel("Samples (Each taken per 100 batches)") 
         plt.ylabel("Total Losses") 
         plt.plot(y, label=log_path)
+    
+    plt.xticks(np.arange(0, len(losses), tick_granularity))
     plt.xlim(xmin=0)
     plt.legend()
     plt.grid()
