@@ -120,13 +120,13 @@ def train(args):
         )
 
         best_total_loss = None
+        total_batch_num = 0
+        sample_count = 0
+        cumulate_content_loss = 0
+        cumulate_style_loss = 0
+        cumulate_tv_loss = 0
+
         for epoch_num in range(EPOCHS):
-
-            sample_count = 0
-            cumulate_content_loss = 0
-            cumulate_style_loss = 0
-            cumulate_tv_loss = 0
-
             # train network
             image_transformer.train()
             for batch_num, (x, label) in enumerate(train_loader):
@@ -150,24 +150,25 @@ def train(args):
                 optimizer.step()
 
                 sample_count += len(x)
+                total_batch_num += 1
 
                 # Showing training message (Could incorporate other backends in the future)
-                if ((batch_num + 1) % REPORT_BATCH_FREQ == 0):
+                if ((total_batch_num + 1) % REPORT_BATCH_FREQ == 0):
                     status = "Time: {}\n  Epoch {}:  [{}/{}]  Batch:[{}]  AvgContentLoss: {:.5f}  AvgStyleLoss: {:.5f}  AvgTVLoss: {:.5f}  content: {:.5f}  style: {:.5f}  tv: {:.5f} \n".format(
-                        time.ctime(), epoch_num + 1, sample_count, dataset_length, batch_num+1,
+                        time.ctime(), epoch_num + 1, sample_count, dataset_length, total_batch_num+1,
                         cumulate_content_loss /
-                        (batch_num+1.0), cumulate_style_loss /
-                        (batch_num+1.0), cumulate_tv_loss/(batch_num+1.0),
+                        (total_batch_num+1.0), cumulate_style_loss /
+                        (total_batch_num+1.0), cumulate_tv_loss/(total_batch_num+1.0),
                         content_loss, style_loss, tv_loss
                     )
                     print(status)
                 
                 if args.loss_log_path is not None:
                     log_line = "{},{},{},{},{},{},{},{},{},{},{}\n".format(
-                        time.ctime(), epoch_num + 1, sample_count, dataset_length, batch_num+1,
+                        time.ctime(), epoch_num + 1, sample_count, dataset_length, total_batch_num+1,
                         cumulate_content_loss /
-                        (batch_num+1.0), cumulate_style_loss /
-                        (batch_num+1.0), cumulate_tv_loss/(batch_num+1.0),
+                        (total_batch_num+1.0), cumulate_style_loss /
+                        (total_batch_num+1.0), cumulate_tv_loss/(total_batch_num+1.0),
                         content_loss, style_loss, tv_loss
                     )
                     if((batch_num + 1) % LOG_LOSS_VALUE_FREQ==0):
@@ -246,12 +247,13 @@ def train(args):
         )
 
         best_total_loss = None
-        for epoch_num in range(EPOCHS):
+        total_batch_num = 0
+        sample_count = 0
+        cumulate_content_loss = 0
+        cumulate_style_loss = 0
+        cumulate_tv_loss = 0
 
-            sample_count = 0
-            cumulate_content_loss = 0
-            cumulate_style_loss = 0
-            cumulate_tv_loss = 0
+        for epoch_num in range(EPOCHS):
 
             # explicity setup style iterator.
             style_iterator = iter(style_loader)
@@ -288,29 +290,30 @@ def train(args):
                 optimizer.step()
 
                 sample_count += len(x)
+                total_batch_num += 1
 
                 # Showing training message (Could incorporate other backends in the future)
-                if ((batch_num + 1) % REPORT_BATCH_FREQ == 0):
+                if ((total_batch_num + 1) % REPORT_BATCH_FREQ == 0):
                     status = "Time: {}\n  Epoch {}:  [{}/{}]  Batch:[{}]  AvgContentLoss: {:.5f}  AvgStyleLoss: {:.5f}  AvgTVLoss: {:.5f}  content: {:.5f}  style: {:.5f}  tv: {:.5f} \n".format(
-                        time.ctime(), epoch_num + 1, sample_count, dataset_length, batch_num+1,
+                        time.ctime(), epoch_num + 1, sample_count, dataset_length, total_batch_num+1,
                         cumulate_content_loss /
-                        (batch_num+1.0), cumulate_style_loss /
-                        (batch_num+1.0), cumulate_tv_loss/(batch_num+1.0),
+                        (total_batch_num+1.0), cumulate_style_loss /
+                        (total_batch_num+1.0), cumulate_tv_loss/(total_batch_num+1.0),
                         content_loss, style_loss, tv_loss
                     )
                 if args.loss_log_path is not None:
                     log_line = "{},{},{},{},{},{},{},{},{},{},{}\n".format(
-                        time.ctime(), epoch_num + 1, sample_count, dataset_length, batch_num+1,
+                        time.ctime(), epoch_num + 1, sample_count, dataset_length, total_batch_num+1,
                         cumulate_content_loss /
-                        (batch_num+1.0), cumulate_style_loss /
-                        (batch_num+1.0), cumulate_tv_loss/(batch_num+1.0),
+                        (total_batch_num+1.0), cumulate_style_loss /
+                        (total_batch_num+1.0), cumulate_tv_loss/(total_batch_num+1.0),
                         content_loss, style_loss, tv_loss
                     )
-                    if((batch_num + 1) % LOG_LOSS_VALUE_FREQ==0):
+                    if((total_batch_num + 1) % LOG_LOSS_VALUE_FREQ==0):
                         with open(args.loss_log_path, "a") as f:
                             f.write(log_line)
 
-                if args.visualization_freq != 0 and ((batch_num + 1) % args.visualization_freq == 0):
+                if args.visualization_freq != 0 and ((total_batch_num + 1) % args.visualization_freq == 0):
                     print("Write vis images to folder.")
 
                     image_transformer.eval()
