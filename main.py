@@ -129,7 +129,7 @@ def train(args):
         for epoch_num in range(EPOCHS):
             # train network
             image_transformer.train()
-            for batch_num, (x, label) in enumerate(train_loader):
+            for _, (x, label) in enumerate(train_loader):
                 
                 if (len(x) < BATCH_SIZE):
                     print("Skip due to insufficient batch size")
@@ -171,11 +171,11 @@ def train(args):
                         (total_batch_num+1.0), cumulate_tv_loss/(total_batch_num+1.0),
                         content_loss, style_loss, tv_loss
                     )
-                    if((batch_num + 1) % LOG_LOSS_VALUE_FREQ==0):
+                    if((total_batch_num + 1) % LOG_LOSS_VALUE_FREQ==0):
                         with open(args.loss_log_path, "a") as f:
                             f.write(log_line)
 
-                if args.visualization_freq != 0 and ((batch_num + 1) % args.visualization_freq == 0):
+                if args.visualization_freq != 0 and ((total_batch_num + 1) % args.visualization_freq == 0):
                     print("Write vis images to folder.")
 
                     image_transformer.eval()
@@ -188,19 +188,19 @@ def train(args):
 
                     output_img_1 = image_transformer(img_avocado).cpu()
                     output_img_1_path = (
-                        "visualization/{}/{}_{}_img_avocado.jpg".format(folder_name, str(epoch_num+1), str(batch_num+1)))
+                        "visualization/{}/{}_{}_img_avocado.jpg".format(folder_name, str(epoch_num+1), str(total_batch_num+1)))
                     restore_and_save_image(
                         output_img_1_path, output_img_1.data[0])
 
                     output_img_2 = image_transformer(img_cheetah).cpu()
                     output_img_2_path = "visualization/{}/{}_{}_img_cheetah.jpg".format(
-                        folder_name, str(epoch_num+1), str(batch_num+1))
+                        folder_name, str(epoch_num+1), str(total_batch_num+1))
                     restore_and_save_image(
                         output_img_2_path, output_img_2.data[0])
 
                     output_img_3 = image_transformer(img_quad).cpu()
                     output_img_3_path = "visualization/{}/{}_{}_img_quad.jpg".format(
-                        folder_name, str(epoch_num+1), str(batch_num+1))
+                        folder_name, str(epoch_num+1), str(total_batch_num+1))
                     restore_and_save_image(
                         output_img_3_path, output_img_3.data[0])
 
@@ -260,7 +260,7 @@ def train(args):
 
             # train network
             image_transformer.train()
-            for batch_num, (x, label) in enumerate(train_loader):
+            for _, (x, label) in enumerate(train_loader):
                 # get current style_image from style_iterator
                 try:
                     style = next(style_iterator)[0].type(dtype)
@@ -331,19 +331,19 @@ def train(args):
                     
                     output_img_1 = image_transformer(img_avocado).cpu()
                     output_img_1_path = (
-                        "visualization/{}/{}_{}_img_avocado_style_la_muse.jpg".format(folder_name, str(epoch_num+1), str(batch_num+1)))
+                        "visualization/{}/{}_{}_img_avocado_style_la_muse.jpg".format(folder_name, str(epoch_num+1), str(total_batch_num+1)))
                     restore_and_save_image(
                         output_img_1_path, output_img_1.data[0])
 
                     output_img_2 = image_transformer(img_cheetah).cpu()
                     output_img_2_path = "visualization/{}/{}_{}_img_cheetah_style_la_muse.jpg".format(
-                        folder_name, str(epoch_num+1), str(batch_num+1))
+                        folder_name, str(epoch_num+1), str(total_batch_num+1))
                     restore_and_save_image(
                         output_img_2_path, output_img_2.data[0])
 
                     output_img_3 = image_transformer(img_quad).cpu()
                     output_img_3_path = "visualization/{}/{}_{}_img_quad_style_la_muse.jpg".format(
-                        folder_name, str(epoch_num+1), str(batch_num+1))
+                        folder_name, str(epoch_num+1), str(total_batch_num+1))
                     restore_and_save_image(
                         output_img_3_path, output_img_3.data[0])
 
@@ -354,19 +354,19 @@ def train(args):
                     
                     output_img_1 = image_transformer(img_avocado).cpu()
                     output_img_1_path = (
-                        "visualization/{}/{}_{}_img_avocado_style_starry_night.jpg".format(folder_name, str(epoch_num+1), str(batch_num+1)))
+                        "visualization/{}/{}_{}_img_avocado_style_starry_night.jpg".format(folder_name, str(epoch_num+1), str(total_batch_num+1)))
                     restore_and_save_image(
                         output_img_1_path, output_img_1.data[0])
 
                     output_img_2 = image_transformer(img_cheetah).cpu()
                     output_img_2_path = "visualization/{}/{}_{}_img_cheetah_style_starry_night.jpg".format(
-                        folder_name, str(epoch_num+1), str(batch_num+1))
+                        folder_name, str(epoch_num+1), str(total_batch_num+1))
                     restore_and_save_image(
                         output_img_2_path, output_img_2.data[0])
 
                     output_img_3 = image_transformer(img_quad).cpu()
                     output_img_3_path = "visualization/{}/{}_{}_img_quad_style_starry_night.jpg".format(
-                        folder_name, str(epoch_num+1), str(batch_num+1))
+                        folder_name, str(epoch_num+1), str(total_batch_num+1))
                     restore_and_save_image(
                         output_img_3_path, output_img_3.data[0])
 
