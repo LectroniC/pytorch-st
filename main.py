@@ -92,6 +92,8 @@ def train(args):
                                 requires_grad=False).type(dtype)
 
     if args.model_name == "plst":
+
+        simple_transform = get_simple_dataset_transform(256)
         print("Training model PLST...")
         
         print("Dataset folder "+args.dataset)
@@ -228,7 +230,7 @@ def train(args):
 
         # style image dataset loader
         print("Style dataset folder"+args.style_image)
-        style_transform = get_simple_dataset_transform(512)
+        style_transform = get_simple_dataset_transform(256)
         style_dataset = datasets.ImageFolder(args.style_image, style_transform)
         style_loader = DataLoader(style_dataset, batch_size=1, shuffle=False)
         style_length = len(style_dataset)
