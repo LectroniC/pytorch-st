@@ -16,8 +16,7 @@ from models.msgnet import MSGNet, Loss_msg
 # Reference: https://github.com/dxyang/StyleTransfer/blob/master/style.py
 # Global Variables
 BATCH_SIZE = 4
-LEARNING_RATE = 0.1     # this is for plst
-LEARNING_RATE = 1e-3    # this is for msgnet
+LEARNING_RATE = 1e-3    
 EPOCHS = 2
 
 REPORT_BATCH_FREQ = 1000
@@ -175,11 +174,6 @@ def train(args):
                         with open(args.loss_log_path, "a") as f:
                             f.write(log_line)
 
-                # if best_total_loss == None or total_loss < best_total_loss:
-                #     best_total_loss = total_loss
-                #     save_model(image_transformer, use_gpu,
-                #                args.model_name+"_best")
-
                 if args.visualization_freq != 0 and ((batch_num + 1) % args.visualization_freq == 0):
                     print("Write vis images to folder.")
 
@@ -213,10 +207,10 @@ def train(args):
             # Save model
             if ((epoch_num + 1) % CHECKPOINT_SAVE_EPOCH_FREQ == 0):
                 save_model(image_transformer, use_gpu,
-                           args.model_name+"_"+str(epoch_num + 1))
+                           args.model_name+"_"+args.model_id+"_"+str(epoch_num + 1))
 
         # save model
-        save_model(image_transformer, use_gpu, args.model_name+"_final")
+        save_model(image_transformer, use_gpu, args.model_name+"_"+args.model_id+"_final")
 
     if args.model_name == "msgnet":
         # MSG Net training pipeline
@@ -316,12 +310,6 @@ def train(args):
                         with open(args.loss_log_path, "a") as f:
                             f.write(log_line)
 
-
-                # if best_total_loss == None or total_loss < best_total_loss:
-                #     best_total_loss = total_loss
-                #     save_model(image_transformer, use_gpu,
-                #                args.model_name+"_best")
-
                 if args.visualization_freq != 0 and ((batch_num + 1) % args.visualization_freq == 0):
                     print("Write vis images to folder.")
 
@@ -333,48 +321,48 @@ def train(args):
                     if not os.path.exists("visualization/{}".format(folder_name)):
                         os.makedirs("visualization/{}".format(folder_name))
 
-                    # style_0
-                    style, _ = style_dataset.__getitem__(0)
+                    # style: la_muse
+                    style, _ = style_dataset.__getitem__(3)
                     style = torch.unsqueeze(style, 0).type(dtype)
                     image_transformer.set_target(style)
                     
                     output_img_1 = image_transformer(img_avocado).cpu()
                     output_img_1_path = (
-                        "visualization/{}/{}_{}_img_avocado_style_0.jpg".format(folder_name, str(epoch_num+1), str(batch_num+1)))
+                        "visualization/{}/{}_{}_img_avocado_style_la_muse.jpg".format(folder_name, str(epoch_num+1), str(batch_num+1)))
                     restore_and_save_image(
                         output_img_1_path, output_img_1.data[0])
 
                     output_img_2 = image_transformer(img_cheetah).cpu()
-                    output_img_2_path = "visualization/{}/{}_{}_img_cheetah_style_0.jpg".format(
+                    output_img_2_path = "visualization/{}/{}_{}_img_cheetah_style_la_muse.jpg".format(
                         folder_name, str(epoch_num+1), str(batch_num+1))
                     restore_and_save_image(
                         output_img_2_path, output_img_2.data[0])
 
                     output_img_3 = image_transformer(img_quad).cpu()
-                    output_img_3_path = "visualization/{}/{}_{}_img_quad_style_0.jpg".format(
+                    output_img_3_path = "visualization/{}/{}_{}_img_quad_style_la_muse.jpg".format(
                         folder_name, str(epoch_num+1), str(batch_num+1))
                     restore_and_save_image(
                         output_img_3_path, output_img_3.data[0])
 
-                    # style_1
-                    style, _ = style_dataset.__getitem__(8)
+                    # style starry_night
+                    style, _ = style_dataset.__getitem__(5)
                     style = torch.unsqueeze(style, 0).type(dtype)
                     image_transformer.set_target(style)
                     
                     output_img_1 = image_transformer(img_avocado).cpu()
                     output_img_1_path = (
-                        "visualization/{}/{}_{}_img_avocado_style_1.jpg".format(folder_name, str(epoch_num+1), str(batch_num+1)))
+                        "visualization/{}/{}_{}_img_avocado_style_starry_night.jpg".format(folder_name, str(epoch_num+1), str(batch_num+1)))
                     restore_and_save_image(
                         output_img_1_path, output_img_1.data[0])
 
                     output_img_2 = image_transformer(img_cheetah).cpu()
-                    output_img_2_path = "visualization/{}/{}_{}_img_cheetah_style_1.jpg".format(
+                    output_img_2_path = "visualization/{}/{}_{}_img_cheetah_style_starry_night.jpg".format(
                         folder_name, str(epoch_num+1), str(batch_num+1))
                     restore_and_save_image(
                         output_img_2_path, output_img_2.data[0])
 
                     output_img_3 = image_transformer(img_quad).cpu()
-                    output_img_3_path = "visualization/{}/{}_{}_img_quad_style_1.jpg".format(
+                    output_img_3_path = "visualization/{}/{}_{}_img_quad_style_starry_night.jpg".format(
                         folder_name, str(epoch_num+1), str(batch_num+1))
                     restore_and_save_image(
                         output_img_3_path, output_img_3.data[0])
@@ -384,10 +372,10 @@ def train(args):
             # Save model
             if ((epoch_num + 1) % CHECKPOINT_SAVE_EPOCH_FREQ == 0):
                 save_model(image_transformer, use_gpu,
-                           args.model_name+"_"+str(epoch_num + 1))
+                           args.model_name+"_"+args.model_id+"_"+str(epoch_num + 1))
 
         # save model
-        save_model(image_transformer, use_gpu, args.model_name+"_final")
+        save_model(image_transformer, use_gpu, args.model_name+"_"+args.model_id+"_final")
 
 
 def style_transfer(args):
@@ -420,6 +408,8 @@ def main():
     train_parser = subparsers.add_parser("train")
     train_parser.add_argument("--model-name", type=str,
                               default="msgnet", help="model chooses for training.")
+    train_parser.add_argument("--model-id", type=str,
+                              default=time.ctime(), help="model id for distinguish different trains.")
     train_parser.add_argument(
         "--style-image", type=str, required=True, help="path to a style image to train with")
     train_parser.add_argument("--dataset", type=str,
@@ -436,6 +426,9 @@ def main():
                               default=1.0, help="Hyperparameter weight for tv loss.")
     train_parser.add_argument("--visualization-folder-id", type=str,
                               default=time.ctime(), help="Visualization folder id.")
+    # TODO: Might be able to use tensorboard
+    train_parser.add_argument(
+        "--loss-log-path", type=str, default=None, help="Log loss value to file. The mode is append.")
 
 
     transfer_parser = subparsers.add_parser("transfer")
@@ -448,9 +441,6 @@ def main():
     transfer_parser.add_argument(
         "--gpu", type=int, default=None, help="GPU ID to use. None to use CPU")
     
-    # TODO: Might be able to use tensorboard
-    transfer_parser.add_argument(
-        "--loss-log-path", type=str, default=None, help="Log loss value to file. The mode is append.")
 
     transfer_parser = subparsers.add_parser("evaluate")
     # TODO: Add helpers on evaluating models.
