@@ -12,6 +12,7 @@ from torchvision import datasets
 from dataset.loader import get_simple_dataset_transform
 from models.plst import StyleTransferNet, Vgg16, Loss_plst
 from models.msgnet import MSGNet, Loss_msg
+from torch.nn.functional import interpolate
 
 # Reference: https://github.com/dxyang/StyleTransfer/blob/master/style.py
 # Global Variables
@@ -98,7 +99,7 @@ def train(args):
         
         print("Dataset folder "+args.dataset)
         train_dataset = datasets.ImageFolder(args.dataset, simple_transform)
-        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)
         dataset_length = len(train_dataset)
         print("Loaded total images: "+str(dataset_length))
 
@@ -132,10 +133,7 @@ def train(args):
             # train network
             image_transformer.train()
             for _, (x, label) in enumerate(train_loader):
-                
-                if (len(x) < BATCH_SIZE):
-                    print("Skip due to insufficient batch size")
-                    continue
+
                 # Forward
                 optimizer.zero_grad()
                 x = Variable(x).type(dtype)
@@ -232,7 +230,7 @@ def train(args):
         print("Style dataset folder"+args.style_image)
         style_transform = get_simple_dataset_transform(256)
         style_dataset = datasets.ImageFolder(args.style_image, style_transform)
-        style_loader = DataLoader(style_dataset, batch_size=1, shuffle=False)
+        style_loader = DataLoader(style_dataset, batch_size=1, shuffle=True)
         style_length = len(style_dataset)
         print("Loaded style images: "+str(style_length))
 
@@ -255,6 +253,8 @@ def train(args):
         cumulate_style_loss = 0
         cumulate_tv_loss = 0
 
+        style_target_size_list = [256, 512, 768]
+
         for epoch_num in range(EPOCHS):
 
             # explicity setup style iterator.
@@ -269,7 +269,10 @@ def train(args):
                 except StopIteration:
                     style_iterator = iter(style_loader)
                     style = next(style_iterator)[0].type(dtype)
-                
+            
+                # iterate style target size 
+                style = interpolate(style, size=style_target_size_list[total_batch_num%3], \
+                    mode="bilinear", align_corners=False)
                 # set style target
                 image_transformer.set_target(style)
                 
