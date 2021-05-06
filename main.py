@@ -18,7 +18,7 @@ from torch.nn.functional import interpolate
 # Global Variables
 BATCH_SIZE = 4
 LEARNING_RATE = 1e-3    
-EPOCHS = 2
+EPOCHS = 3
 
 REPORT_BATCH_FREQ = 1000
 LOG_LOSS_VALUE_FREQ = 100
@@ -253,7 +253,7 @@ def train(args):
         cumulate_style_loss = 0
         cumulate_tv_loss = 0
 
-        style_target_size_list = [256, 512, 768]
+        style_target_size_list = [256, 512]
 
         # explicity setup style iterator.
         style_iterator = iter(style_loader)
@@ -270,7 +270,7 @@ def train(args):
                     style = next(style_iterator)[0].type(dtype)
             
                 # iterate style target size 
-                style = interpolate(style, size=style_target_size_list[(total_batch_num//style_length)%3], \
+                style = interpolate(style, size=style_target_size_list[(total_batch_num//style_length)%2], \
                     mode="bilinear", align_corners=False)
                 # set style target
                 image_transformer.set_target(style)
