@@ -271,7 +271,7 @@ def train(args):
                     style = next(style_iterator)[0].type(dtype)
             
                 # iterate style target size 
-                style = interpolate(style, size=style_target_size_list[total_batch_num%3], \
+                style = interpolate(style, size=style_target_size_list[(total_batch_num//style_length)%3], \
                     mode="bilinear", align_corners=False)
                 # set style target
                 image_transformer.set_target(style)
