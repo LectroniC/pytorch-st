@@ -305,6 +305,8 @@ def train(args):
                         (total_batch_num+1.0), cumulate_tv_loss/(total_batch_num+1.0),
                         content_loss, style_loss, tv_loss
                     )
+                    print(status)
+                    
                 if args.loss_log_path is not None:
                     log_line = "{},{},{},{},{},{},{},{},{},{},{}\n".format(
                         time.ctime(), epoch_num + 1, sample_count, dataset_length, total_batch_num+1,
