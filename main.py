@@ -255,10 +255,9 @@ def train(args):
 
         style_target_size_list = [256, 512, 768]
 
+        # explicity setup style iterator.
+        style_iterator = iter(style_loader)
         for epoch_num in range(EPOCHS):
-
-            # explicity setup style iterator.
-            style_iterator = iter(style_loader)
 
             # train network
             image_transformer.train()
