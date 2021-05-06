@@ -306,7 +306,7 @@ def train(args):
                         content_loss, style_loss, tv_loss
                     )
                     print(status)
-                    
+
                 if args.loss_log_path is not None:
                     log_line = "{},{},{},{},{},{},{},{},{},{},{}\n".format(
                         time.ctime(), epoch_num + 1, sample_count, dataset_length, total_batch_num+1,
@@ -402,13 +402,46 @@ def style_transfer(args):
     content = content.unsqueeze(0)
     content = Variable(content).type(dtype)
 
-    # load style model
-    style_model = StyleTransferNet().type(dtype)
-    style_model.load_state_dict(torch.load(args.model_path))
 
-    # process input image
-    stylized = style_model(content).cpu()
-    restore_and_save_image(args.output, stylized.data[0])
+    if args.model_name == "plst":
+        # load style model: PLST
+        style_model = StyleTransferNet().type(dtype)
+        style_model.load_state_dict(torch.load(args.model_path, map_location="cuda:0"))
+        # process input image
+        start = time.time()
+        stylized = style_model(content).cpu()
+        end = time.time()
+        print ("Time elapsed for PLST inference:", end - start)
+        restore_and_save_image(args.output, stylized.data[0])
+
+    elif args.model_name == "msgnet":
+        assert args.style_path is not None
+        assert args.style_id is not None
+        assert args.brush_size is not None
+        # load style model: msgnet
+        style_model = MSGNet(block_size=128).type(dtype)
+        style_model.load_state_dict(torch.load(args.model_path, map_location="cuda:0"))
+        # load style image: initialize dataset
+        print("Style dataset folder"+args.style_path)
+        style_transform = get_simple_dataset_transform(args.brush_size)
+        style_dataset = datasets.ImageFolder(args.style_path, style_transform)
+        # lamuse
+        style, _ = style_dataset.__getitem__(args.style_id)
+        style = torch.unsqueeze(style, 0).type(dtype)
+        style_model.set_target(style)
+        # inference and save 
+        start = time.time()
+        stylized = style_model(content).cpu()
+        end = time.time()
+        print ("Time elapsed for MSGNet inference:", end - start)
+        restore_and_save_image(args.output, stylized.data[0])
+
+    else:
+        raise NotImplementedError
+
+
+
+
 
 
 def main():
@@ -441,6 +474,8 @@ def main():
 
 
     transfer_parser = subparsers.add_parser("transfer")
+    transfer_parser.add_argument("--model-name", type=str,
+                              default="msgnet", help="model chooses for training.")
     transfer_parser.add_argument(
         "--model-path", type=str, required=True, help="path to a pretrained model for a style image")
     transfer_parser.add_argument(
@@ -449,6 +484,12 @@ def main():
         "--output", type=str, required=True, help="file name for stylized output image")
     transfer_parser.add_argument(
         "--gpu", type=int, default=None, help="GPU ID to use. None to use CPU")
+    transfer_parser.add_argument(
+        "--style-path", type=str, default=None, help="path to the style folder to test with: only required for msgnet")
+    transfer_parser.add_argument(
+        "--style-id", type=int, default=None, help="style image id to test with: only required for msgnet")
+    transfer_parser.add_argument(
+        "--brush-size", type=int, default=None, help="brush size: only required for msgnet")
     
 
     transfer_parser = subparsers.add_parser("evaluate")
