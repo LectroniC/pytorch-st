@@ -410,7 +410,7 @@ def style_transfer(args):
         style_model.eval()
         # process input image
         start = time.time()
-        stylized = style_model(content)
+        stylized = style_model(content).cpu()
         end = time.time()
         print ("Time elapsed for PLST inference:", end - start)
         restore_and_save_image(args.output, stylized.data[0])
@@ -433,7 +433,7 @@ def style_transfer(args):
         style_model.set_target(style)
         # inference and save 
         start = time.time()
-        stylized = style_model(content)
+        stylized = style_model(content).cpu()
         end = time.time()
         print ("Time elapsed for MSGNet inference:", end - start)
         restore_and_save_image(args.output, stylized.data[0])
@@ -463,11 +463,12 @@ def evaluate(args):
         # load style model: PLST
         style_model = StyleTransferNet().type(dtype)
         style_model.load_state_dict(torch.load(args.model_path, map_location="cuda:0"))
+        style_model.eval()
         # process input image: average across 10 different runs
         time_list = []
         for i in range(10):
             start = time.time()
-            stylized = style_model(content).cpu()
+            stylized = style_model(content)
             end = time.time()
             time_list.append(end-start)
         time_list.remove(max(time_list))
@@ -480,6 +481,7 @@ def evaluate(args):
         # load style model: msgnet
         style_model = MSGNet(block_size=128).type(dtype)
         style_model.load_state_dict(torch.load(args.model_path, map_location="cuda:0"))
+        style_model.eval()
         # load style image: initialize dataset
         print("Style dataset folder"+args.style_path)
         style_transform = get_simple_dataset_transform(256)
@@ -492,7 +494,7 @@ def evaluate(args):
         time_list = []
         for i in range(10):
             start = time.time()
-            stylized = style_model(content).cpu()
+            stylized = style_model(content)
             end = time.time()
             time_list.append(end-start)
         time_list.remove(max(time_list))
