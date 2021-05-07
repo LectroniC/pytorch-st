@@ -427,8 +427,9 @@ def style_transfer(args):
         print("Style dataset folder"+args.style_path)
         style_transform = get_simple_dataset_transform(args.brush_size)
         style_dataset = datasets.ImageFolder(args.style_path, style_transform)
-        # lamuse
+        # extract style image
         style, _ = style_dataset.__getitem__(args.style_id)
+        # restore_and_save_image('acur_style.jpg', style)
         style = torch.unsqueeze(style, 0).type(dtype)
         style_model.set_target(style)
         # inference and save 
@@ -468,7 +469,7 @@ def evaluate(args):
         time_list = []
         for i in range(10):
             start = time.time()
-            stylized = style_model(content)
+            stylized = style_model(content).cpu()
             end = time.time()
             time_list.append(end-start)
         time_list.remove(max(time_list))
@@ -494,7 +495,7 @@ def evaluate(args):
         time_list = []
         for i in range(10):
             start = time.time()
-            stylized = style_model(content)
+            stylized = style_model(content).cpu()
             end = time.time()
             time_list.append(end-start)
         time_list.remove(max(time_list))
