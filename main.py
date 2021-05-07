@@ -440,6 +440,66 @@ def style_transfer(args):
         raise NotImplementedError
 
 
+def evaluate(args):
+    """this is for evaluating inferencing time"""
+    # GPU enabling
+    if (args.gpu != None):
+        dtype = torch.cuda.FloatTensor
+        torch.cuda.set_device(args.gpu)
+        print("Current CUDA device: {}".format(torch.cuda.current_device()))
+
+    # content image: in evaluation phase all 256 to be fair
+    simple_transform = get_simple_dataset_transform(256)
+
+    content = load_image(args.source)
+    content = simple_transform(content)
+    content = content.unsqueeze(0)
+    content = Variable(content).type(dtype)
+
+
+    if args.model_name == "plst":
+        # load style model: PLST
+        style_model = StyleTransferNet().type(dtype)
+        style_model.load_state_dict(torch.load(args.model_path, map_location="cuda:0"))
+        # process input image: average across 10 different runs
+        time_list = []
+        for i in range(10):
+            start = time.time()
+            stylized = style_model(content).cpu()
+            end = time.time()
+            time_list.append(end-start)
+        time_list.remove(max(time_list))
+        time_list.remove(min(time_list))
+        time_list = np.array(time_list)
+        print("average run time for plst: ", np.mean(time_list))
+
+    elif args.model_name == "msgnet":
+        assert args.style_path is not None
+        # load style model: msgnet
+        style_model = MSGNet(block_size=128).type(dtype)
+        style_model.load_state_dict(torch.load(args.model_path, map_location="cuda:0"))
+        # load style image: initialize dataset
+        print("Style dataset folder"+args.style_path)
+        style_transform = get_simple_dataset_transform(256)
+        style_dataset = datasets.ImageFolder(args.style_path, style_transform)
+        # first arbitrary style
+        style, _ = style_dataset.__getitem__(0)
+        style = torch.unsqueeze(style, 0).type(dtype)
+        style_model.set_target(style)
+        # inference and save 
+        time_list = []
+        for i in range(10):
+            start = time.time()
+            stylized = style_model(content).cpu()
+            end = time.time()
+            time_list.append(end-start)
+        time_list.remove(max(time_list))
+        time_list.remove(min(time_list))
+        time_list = np.array(time_list)
+        print("average run time for msgnet: ", np.mean(time_list))
+
+    else:
+        raise NotImplementedError 
 
 
 
@@ -492,8 +552,17 @@ def main():
         "--brush-size", type=int, default=None, help="brush size: only required for msgnet")
     
 
-    transfer_parser = subparsers.add_parser("evaluate")
-    # TODO: Add helpers on evaluating models.
+    evaluate_parser = subparsers.add_parser("evaluate")
+    evaluate_parser.add_argument("--model-name", type=str,
+                              default="msgnet", help="model chooses for training.")
+    evaluate_parser.add_argument(
+        "--model-path", type=str, required=True, help="path to a pretrained model for a style image")
+    evaluate_parser.add_argument(
+        "--source", type=str, required=True, help="path to source image")
+    evaluate_parser.add_argument(
+        "--gpu", type=int, default=None, help="GPU ID to use. None to use CPU")
+    evaluate_parser.add_argument(
+        "--style-path", type=str, default=None, help="path to the style folder to test with: only required for msgnet")
 
     args = parser.parse_args()
 
@@ -503,8 +572,7 @@ def main():
     elif (args.subcommand == "transfer"):
         style_transfer(args)
     elif (args.subcommand == "evaluate"):
-        # TODO: Add evaluate interface
-        pass
+        evaluate(args)
     else:
         print("invalid command")
 
