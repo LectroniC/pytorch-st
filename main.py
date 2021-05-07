@@ -407,6 +407,7 @@ def style_transfer(args):
         # load style model: PLST
         style_model = StyleTransferNet().type(dtype)
         style_model.load_state_dict(torch.load(args.model_path, map_location="cuda:0"))
+        style_model.eval()
         # process input image
         start = time.time()
         stylized = style_model(content).cpu()
@@ -421,12 +422,14 @@ def style_transfer(args):
         # load style model: msgnet
         style_model = MSGNet(block_size=128).type(dtype)
         style_model.load_state_dict(torch.load(args.model_path, map_location="cuda:0"))
+        style_model.eval()
         # load style image: initialize dataset
         print("Style dataset folder"+args.style_path)
         style_transform = get_simple_dataset_transform(args.brush_size)
         style_dataset = datasets.ImageFolder(args.style_path, style_transform)
-        # lamuse
+        # extract style image
         style, _ = style_dataset.__getitem__(args.style_id)
+        # restore_and_save_image('acur_style.jpg', style)
         style = torch.unsqueeze(style, 0).type(dtype)
         style_model.set_target(style)
         # inference and save 
@@ -461,6 +464,7 @@ def evaluate(args):
         # load style model: PLST
         style_model = StyleTransferNet().type(dtype)
         style_model.load_state_dict(torch.load(args.model_path, map_location="cuda:0"))
+        style_model.eval()
         # process input image: average across 10 different runs
         time_list = []
         for i in range(10):
@@ -478,6 +482,7 @@ def evaluate(args):
         # load style model: msgnet
         style_model = MSGNet(block_size=128).type(dtype)
         style_model.load_state_dict(torch.load(args.model_path, map_location="cuda:0"))
+        style_model.eval()
         # load style image: initialize dataset
         print("Style dataset folder"+args.style_path)
         style_transform = get_simple_dataset_transform(256)
