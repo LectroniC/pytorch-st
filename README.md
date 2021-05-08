@@ -1,6 +1,6 @@
-# pytorchst: A-library-for-neural-style-transfer
+# Pytorchst: A-library-for-neural-style-transfer
 
-PyTorch implementation for different neural style transfer model
+PyTorch implementation for different neural style transfer models
 
 - [Perceptual Losses for Real-Time Style Transfer and Super-Resolution](https://arxiv.org/abs/1603.08155) Johnson et al.
 
