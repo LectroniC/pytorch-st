@@ -6,17 +6,25 @@ PyTorch implementation for different neural style transfer models
 
 - [Multi-style Generative Network for Real-time Transfer](https://arxiv.org/abs/1703.06953) Zhang et al.
 
-The code allows training 
+
+## Example Command for Training
+
+For PLST:
+```
+python3 -u main.py train --model-name plst --model-id la_muse --style-image ./dataset/style9/style/la_muse.jpg --dataset dataset/data/train/ --gpu 0 --visualization-freq 1000 --visualization-folder-id plst_la_muse --loss-log-path ./loss/plst_la_muse.csv
+```
+
+For MSGNet:
+```
+python3 -u main.py train --model-name msgnet --model-id all --style-image ./dataset/style9/ --dataset dataset/data/train/ --gpu 1 --visualization-freq 1000 --visualization-folder-id msgnet_all --loss-log-path ./loss/msgnet_all.csv
+```
+
+Notice that the `--loss-log-path` file would be written in append mode.
 
 ## Prerequisites
 - Linux
 - NVIDIA GPU
 - CUDA CuDNN
-
-## Somethings to think about later:
-
-- Create a trainer class and parameterize model definition.
-- Use conda for environment configuration.
 
 ## Reference
 
